@@ -271,6 +271,33 @@ H:\ScreenWatch\build.ps1
 
 解除安裝會一併刪除設定檔（裡面有 Discord webhook 網址）。
 
+## 程式碼簽章
+
+沒簽章的安裝檔會被 SmartScreen 擋下，這是發佈前的硬性前置條件。
+
+```powershell
+# 1. 先簽兩個內層 exe
+.\sign.ps1 -Thumbprint <憑證指紋> -Files bin\ScreenWatch.exe, bin\ProgressDemo.exe
+
+# 2. 重新打包（安裝程式會把已簽章的 exe 內嵌進去）
+.\build.ps1
+
+# 3. 再簽安裝程式本身
+.\sign.ps1 -Thumbprint <憑證指紋> -Files dist\ScreenWatch-Setup.exe
+```
+
+順序不能顛倒：安裝程式把兩個 exe 當資源內嵌，先簽安裝程式的話裡面裝的還是未簽章的版本。
+
+`sign.ps1` 用 Windows 內建的 `Set-AuthenticodeSignature`，**不需要 Windows SDK**。
+它一律加上 RFC3161 時間戳記 —— 沒有時間戳記的話，憑證到期當天所有已發佈的簽章
+就會同時失效；有的話簽章在憑證到期後仍然有效。
+
+查憑證指紋：
+
+```powershell
+Get-ChildItem Cert:\CurrentUser\My | Format-List Subject, Thumbprint, NotAfter
+```
+
 ## 還沒做
 
 - 監視項目沒有存檔，關掉程式就沒了
