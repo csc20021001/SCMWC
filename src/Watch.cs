@@ -30,6 +30,18 @@ namespace ScreenWatch
                 default: return "監視中";
             }
         }
+
+        /// <summary>英文副標。產品要賣到國外，狀態這種關鍵字並列比較保險。</summary>
+        public static string En(WatchStatus s)
+        {
+            switch (s)
+            {
+                case WatchStatus.Blind: return "No image";
+                case WatchStatus.Parked: return "Background";
+                case WatchStatus.Dead: return "Closed";
+                default: return "Watching";
+            }
+        }
     }
 
     /// <summary>一個監視項目。</summary>
@@ -298,6 +310,28 @@ namespace ScreenWatch
                 Native.SWP_NOSIZE | Native.SWP_NOZORDER | Native.SWP_NOACTIVATE);
             IsParked = false;
         }
+
+        // 給主視窗自繪用的結構化欄位。UI 需要分開排版，不能只拿一整串文字去切。
+        public string StatusLabel { get { return StatusText.Of(Status); } }
+        public string StatusLabelEn { get { return StatusText.En(Status); } }
+        public string ConditionLabel { get { return Trig.Describe(); } }
+        public bool ShowsProgress
+        {
+            get
+            {
+                return Trig.Kind == TriggerKind.Full || Trig.Kind == TriggerKind.PercentReached;
+            }
+        }
+        public double ProgressPercent { get { return Trig.LastPercent; } }
+        public double CoveragePercent
+        {
+            get
+            {
+                double total = LiveSeconds + BlindSeconds;
+                return total > 0 ? LiveSeconds / total * 100 : 100;
+            }
+        }
+        public bool PushesToPhone { get { return DiscordEnabled && Discord.Configured; } }
 
         public string Describe()
         {

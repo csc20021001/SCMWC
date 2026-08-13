@@ -6,25 +6,35 @@ using System.Windows.Forms;
 namespace ScreenWatch
 {
     /// <summary>
-    /// 主視窗。開啟程式就看得到，最上面是「選取想要監視的區域」。
+    /// 主視窗（深色主控台）。整個畫面自繪 —— WinForms 沒有色票標籤、圓角、
+    /// 列內進度條這些東西，全部用 GDI+ 畫。
     ///
-    /// 移除監視的方式刻意不依賴「選取狀態」：每一列右邊自己有一個叉叉，
-    /// 被監視的區域旁邊也有一個。之前那顆「移除選取的監視」按鈕要先選一列，
-    /// 而選取狀態太容易被清掉，結果就是按了沒反應。
+    /// 移除監視刻意不依賴「選取狀態」：每一列右邊自己有一個 ✕，
+    /// 被監視的區域旁邊也浮著一個。
     /// </summary>
     public sealed class MainForm : Form
     {
-        readonly Button select = new Button();
-        readonly ListBox list = new ListBox();
+        sealed class LogEntry
+        {
+            public DateTime Time;
+            public string Text;
+        }
+
+        readonly Panel header = new Panel();
+        readonly AccentButton select = new AccentButton();
         readonly Label hint = new Label();
-        readonly Panel bottom = new Panel();
-        readonly Button discordBtn = new Button();
-        readonly Button testBtn = new Button();
-        readonly Label lastNotify = new Label();
-        readonly ListBox history = new ListBox();
-        readonly Label historyLabel = new Label();
+        readonly ListBox list = new ListBox();
+        readonly Label logLabel = new Label();
+        readonly ListBox log = new ListBox();
+        readonly Panel footer = new Panel();
+        readonly LinkText testLink = new LinkText();
+        readonly LinkText phoneLink = new LinkText();
+
+        readonly Font fTitle, fMeta, fRowTitle, fPill, fRowDetail, fHint, fLog, fLogTime, fSection;
         readonly double s;
         readonly int closeZone;
+        int watchCount;
+        string phoneStatus = "";
 
         public event Action AddRequested;
         public event Action<Watch> RemoveRequested;
@@ -34,26 +44,39 @@ namespace ScreenWatch
 
         public MainForm()
         {
-            // WinForms 在 .NET Framework 上不會自動跟著 DPI 縮放，手動乘上去，
-            // 否則在 125% 以上的螢幕會小到看不清。
             s = Native.SystemScale();
-            closeZone = Px(30);
+            closeZone = Px(46);
+
+            fTitle = new Font("Segoe UI", 13.5f * (float)s, FontStyle.Bold);
+            fMeta = new Font("Consolas", 9f * (float)s);
+            fSection = new Font("Segoe UI", 9f * (float)s, FontStyle.Bold);
+            fRowTitle = new Font("Segoe UI", 11.5f * (float)s, FontStyle.Bold);
+            fPill = new Font("Consolas", 8.5f * (float)s);
+            fRowDetail = new Font("Consolas", 9f * (float)s);
+            fHint = new Font("Segoe UI", 9.5f * (float)s);
+            fLog = new Font("Segoe UI", 10f * (float)s);
+            fLogTime = new Font("Consolas", 9f * (float)s);
 
             Text = "ScreenWatch";
-            ClientSize = new Size(Px(780), Px(660));
-            MinimumSize = new Size(Px(620), Px(520));
+            ClientSize = new Size(Px(820), Px(700));
+            MinimumSize = new Size(Px(640), Px(540));
             StartPosition = FormStartPosition.CenterScreen;
+            BackColor = Theme.Bg;
+            ForeColor = Theme.Text;
             Font = new Font("Segoe UI", 9f * (float)s);
 
+            // --- 標頭 ---
+            header.Dock = DockStyle.Top;
+            header.Height = Px(52);
+            header.BackColor = Theme.Bg;
+            header.Paint += PaintHeader;
+
+            // --- 主要動作 ---
             select.Dock = DockStyle.Top;
-            select.Height = Px(56);
-            select.Text = "選取想要監視的區域";
-            select.Font = new Font("Segoe UI", 12f * (float)s, FontStyle.Bold);
-            select.FlatStyle = FlatStyle.Flat;
-            select.BackColor = Color.FromArgb(0, 120, 212);
-            select.ForeColor = Color.White;
-            select.FlatAppearance.BorderSize = 0;
-            select.Cursor = Cursors.Hand;
+            select.Height = Px(60);
+            select.Title = "選取想要監視的區域";
+            select.Subtitle = "Select a region to watch";
+            select.Margin = new Padding(Px(22), 0, Px(22), 0);
             select.Click += delegate
             {
                 var h = AddRequested;
@@ -61,23 +84,26 @@ namespace ScreenWatch
             };
 
             hint.Dock = DockStyle.Top;
-            hint.Height = Px(78);
-            hint.Padding = new Padding(Px(4), Px(6), Px(4), Px(6));
-            hint.Text = "選取時：拖曳滑鼠 = 框選自訂區域；點一下 = 選取整個視窗。可以同時監視多個。\r\n"
-                      + "要停掉某一項：點那一列右邊的 ✕，或點被監視區域旁邊浮著的 ✕。\r\n"
-                      + "雙擊某一列可以改它的通知條件。「看不到畫面」的時間會從「看得到的時間」扣掉。";
-            hint.ForeColor = Color.FromArgb(95, 95, 95);
+            hint.Height = Px(58);
+            hint.BackColor = Theme.Bg;
+            hint.ForeColor = Theme.TextDim;
+            hint.Font = fHint;
+            hint.Padding = new Padding(Px(24), Px(10), Px(24), 0);
+            hint.Text = "拖曳滑鼠 = 框選自訂區域，點一下 = 選取整個視窗。可以同時監視多個區域。\r\n"
+                      + "Drag to frame a custom region, or click once to pick a whole window.";
 
-            // 自己繪製項目：清單直接存 Watch 物件，更新文字只要 Invalidate()，
-            // 不必清空重建，選取狀態也不會被每半秒的更新弄掉。
+            // --- 監視清單 ---
             list.Dock = DockStyle.Top;
-            list.Height = Px(170);
-            list.Font = new Font("Consolas", 9.5f * (float)s);
+            list.Height = Px(210);
+            list.BorderStyle = BorderStyle.None;
+            // 底色用視窗底色：清單沒填滿時不會露出一大塊灰。
+            // 列與列之間的分隔線改成自己畫。
+            list.BackColor = Theme.Bg;
+            list.ForeColor = Theme.Text;
             list.IntegralHeight = false;
-            list.BorderStyle = BorderStyle.FixedSingle;
             list.DrawMode = DrawMode.OwnerDrawFixed;
-            list.ItemHeight = Px(22);
-            list.DrawItem += OnDrawItem;
+            list.ItemHeight = Px(76);
+            list.DrawItem += DrawWatchRow;
             list.MouseDown += OnListMouseDown;
             list.MouseMove += OnListMouseMove;
             list.DoubleClick += OnListDoubleClick;
@@ -86,82 +112,141 @@ namespace ScreenWatch
                 if (e.KeyCode == Keys.Delete) Remove(list.SelectedItem as Watch);
             };
 
-            bottom.Dock = DockStyle.Bottom;
-            bottom.Height = Px(42);
+            // --- 通知紀錄 ---
+            logLabel.Dock = DockStyle.Top;
+            logLabel.Height = Px(30);
+            logLabel.BackColor = Theme.Bg;
+            logLabel.Paint += PaintLogLabel;
 
-            discordBtn.Text = "設定手機通知…";
-            discordBtn.SetBounds(Px(6), Px(7), Px(150), Px(28));
-            discordBtn.Click += delegate
-            {
-                var h = DiscordSettingsRequested;
-                if (h != null) h();
-            };
-            bottom.Controls.Add(discordBtn);
+            log.Dock = DockStyle.Fill;
+            log.BorderStyle = BorderStyle.None;
+            log.BackColor = Theme.LogBg;
+            log.ForeColor = Theme.LogText;
+            log.IntegralHeight = false;
+            log.DrawMode = DrawMode.OwnerDrawFixed;
+            log.ItemHeight = Px(34);
+            log.DrawItem += DrawLogRow;
 
-            // 用來分辨「條件沒成立」和「成立了但 Windows 沒把通知顯示出來」
-            testBtn.Text = "試發一則通知";
-            testBtn.SetBounds(Px(162), Px(7), Px(130), Px(28));
-            testBtn.Click += delegate
+            // --- 頁尾 ---
+            footer.Dock = DockStyle.Bottom;
+            footer.Height = Px(46);
+            footer.BackColor = Theme.FooterBg;
+            footer.Paint += PaintFooter;
+
+            testLink.Text = "試發一則通知";
+            testLink.Font = new Font("Segoe UI", 9.5f * (float)s, FontStyle.Bold);
+            testLink.SetBounds(Px(22), Px(15), Px(110), Px(20));
+            testLink.Click += delegate
             {
                 var h = TestNotifyRequested;
                 if (h != null) h();
             };
-            bottom.Controls.Add(testBtn);
+            footer.Controls.Add(testLink);
 
-            lastNotify.SetBounds(Px(302), Px(12), Px(450), Px(22));
-            lastNotify.ForeColor = Color.FromArgb(95, 95, 95);
-            bottom.Controls.Add(lastNotify);
+            phoneLink.Text = "設定手機通知…";
+            phoneLink.Font = new Font("Segoe UI", 9.5f * (float)s, FontStyle.Bold);
+            phoneLink.SetBounds(Px(146), Px(15), Px(130), Px(20));
+            phoneLink.Click += delegate
+            {
+                var h = DiscordSettingsRequested;
+                if (h != null) h();
+            };
+            footer.Controls.Add(phoneLink);
 
-            historyLabel.Dock = DockStyle.Top;
-            historyLabel.Height = Px(22);
-            historyLabel.Padding = new Padding(Px(4), Px(3), 0, 0);
-            historyLabel.Text = "通知紀錄（最新的在最上面）：";
-            historyLabel.ForeColor = Color.FromArgb(95, 95, 95);
+            var pad = new Panel();
+            pad.Dock = DockStyle.Top;
+            pad.Height = Px(12);
+            pad.BackColor = Theme.Bg;
 
-            history.Dock = DockStyle.Fill;
-            history.Font = new Font("Consolas", 9f * (float)s);
-            history.IntegralHeight = false;
-            history.BorderStyle = BorderStyle.FixedSingle;
-
-            // Dock.Fill 要先加入，Dock.Top 是「最後加入的在最上面」。
-            Controls.Add(history);
-            Controls.Add(bottom);
-            Controls.Add(historyLabel);
+            Controls.Add(log);
+            Controls.Add(logLabel);
             Controls.Add(list);
             Controls.Add(hint);
             Controls.Add(select);
+            Controls.Add(pad);
+            Controls.Add(header);
+            Controls.Add(footer);
         }
 
         int Px(int logical) { return (int)Math.Round(logical * s); }
 
-        // 給 --uitest 用的檢查點
-        public Watch SelectedWatch { get { return list.SelectedItem as Watch; } }
-        public int RowCount { get { return list.Items.Count; } }
-
-        /// <summary>
-        /// 給 --uitest 用：模擬點某一列的叉叉。
-        /// 走的是跟真實滑鼠完全相同的命中判定，所以座標算錯會被測出來。
-        /// </summary>
-        public bool TestClickClose(int rowIndex)
+        protected override void OnHandleCreated(EventArgs e)
         {
-            if (rowIndex < 0 || rowIndex >= list.Items.Count) return false;
-            Rectangle x = CloseRectFor(list.GetItemRectangle(rowIndex));
-            Watch w = CloseHitTest(new Point(x.Left + x.Width / 2, x.Top + x.Height / 2));
-            if (w == null) return false;
-            Remove(w);
-            return true;
+            base.OnHandleCreated(e);
+            Native.UseDarkTitleBar(Handle);
         }
 
-        /// <summary>某一列的叉叉命中區。</summary>
-        Rectangle CloseRectFor(Rectangle rowBounds)
+        // ------------------------------------------------------------------
+        // 標頭 / 頁尾 / 區段標題
+        // ------------------------------------------------------------------
+
+        void PaintHeader(object sender, PaintEventArgs e)
         {
-            int pad = Px(5);
-            int side = rowBounds.Height - pad * 2;
-            return new Rectangle(rowBounds.Right - closeZone + (closeZone - side) / 2,
-                                 rowBounds.Top + pad, side, side);
+            Graphics g = e.Graphics;
+            int y = Px(18);
+            Theme.FillRounded(g, new Rectangle(Px(22), y + Px(3), Px(11), Px(11)), Px(3), Theme.Accent);
+
+            int x = Px(41);
+            TextRenderer.DrawText(g, "ScreenWatch", fTitle, new Point(x, y - Px(2)),
+                                  Theme.Text, TextFormatFlags.NoPadding);
+            x += TextRenderer.MeasureText(g, "ScreenWatch", fTitle).Width + Px(10);
+
+            string count = watchCount == 1 ? "1 watching"
+                : string.Format("{0} watching", watchCount);
+            TextRenderer.DrawText(g, count, fMeta, new Point(x, y + Px(2)),
+                                  Theme.TextFaint, TextFormatFlags.NoPadding);
+
+            Size ps = TextRenderer.MeasureText(g, phoneStatus, fMeta);
+            TextRenderer.DrawText(g, phoneStatus, fMeta,
+                new Point(header.ClientSize.Width - Px(22) - ps.Width, y + Px(2)),
+                Theme.TextFaint, TextFormatFlags.NoPadding);
         }
 
-        /// <summary>座標落在哪一列的叉叉上；沒有就回傳 null。</summary>
+        void PaintLogLabel(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            TextRenderer.DrawText(g, "通知紀錄（最新的在最上面）", fSection,
+                new Point(Px(22), Px(10)), Theme.TextDim, TextFormatFlags.NoPadding);
+
+            int today = 0;
+            for (int i = 0; i < log.Items.Count; i++)
+            {
+                var le = log.Items[i] as LogEntry;
+                if (le != null && le.Time.Date == DateTime.Today) today++;
+            }
+            string right = today == 0 ? "今天還沒有" : string.Format("今天 {0} 則", today);
+            Size sz = TextRenderer.MeasureText(g, right, fMeta);
+            TextRenderer.DrawText(g, right, fMeta,
+                new Point(logLabel.ClientSize.Width - Px(22) - sz.Width, Px(11)),
+                Theme.TextFaint, TextFormatFlags.NoPadding);
+        }
+
+        void PaintFooter(object sender, PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            using (var p = new Pen(Theme.Line))
+                g.DrawLine(p, 0, 0, footer.ClientSize.Width, 0);
+
+            string right = Discord.LastResult.Length > 0
+                ? "上次傳送 " + Discord.LastResult : "";
+            if (right.Length == 0) return;
+            Size sz = TextRenderer.MeasureText(g, right, fMeta);
+            TextRenderer.DrawText(g, right, fMeta,
+                new Point(footer.ClientSize.Width - Px(22) - sz.Width, Px(17)),
+                Theme.TextFaint, TextFormatFlags.NoPadding);
+        }
+
+        // ------------------------------------------------------------------
+        // 監視列
+        // ------------------------------------------------------------------
+
+        Rectangle CloseRectFor(Rectangle row)
+        {
+            int side = Px(26);
+            return new Rectangle(row.Right - closeZone + (closeZone - side) / 2,
+                                 row.Top + (row.Height - side) / 2 - Px(1), side, side);
+        }
+
         Watch CloseHitTest(Point p)
         {
             int idx = list.IndexFromPoint(p);
@@ -172,6 +257,138 @@ namespace ScreenWatch
             return w;
         }
 
+        void DrawWatchRow(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0) return;
+            Graphics g = e.Graphics;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+            Rectangle full = e.Bounds;
+            Rectangle body = new Rectangle(full.X, full.Y, full.Width, full.Height - 1);
+
+            object item = list.Items[e.Index];
+            Watch w = item as Watch;
+            bool selected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+
+            if (w == null)
+            {
+                // 空清單的提示不畫成一列，直接寫在底色上
+                using (var b = new SolidBrush(Theme.Bg)) g.FillRectangle(b, full);
+                TextRenderer.DrawText(g, Convert.ToString(item), fHint,
+                    new Point(full.X + Px(24), full.Y + Px(18)), Theme.TextFaint,
+                    TextFormatFlags.NoPadding);
+                return;
+            }
+
+            using (var b = new SolidBrush(selected ? Theme.MutedBg : Theme.Row))
+                g.FillRectangle(b, body);
+            using (var p = new Pen(Theme.Line))
+                g.DrawLine(p, body.Left, body.Bottom, body.Right, body.Bottom);
+
+            int x = body.X + Px(16);
+            int y = body.Y + Px(12);
+            int lineH = Px(22);
+
+            // 第一行：標題 + 狀態色票
+            string name = w.Title.Length > 28 ? w.Title.Substring(0, 28) + "…" : w.Title;
+            TextRenderer.DrawText(g, name, fRowTitle, new Rectangle(x, y, body.Width, lineH),
+                Theme.Text, TextFormatFlags.NoPadding | TextFormatFlags.VerticalCenter);
+            int nameW = TextRenderer.MeasureText(g, name, fRowTitle).Width;
+
+            Color pillFore, pillBack;
+            switch (w.Status)
+            {
+                case WatchStatus.Blind: pillFore = Theme.WarnText; pillBack = Theme.WarnBg; break;
+                case WatchStatus.Live: pillFore = Theme.OkText; pillBack = Theme.OkBg; break;
+                default: pillFore = Theme.MutedText; pillBack = Theme.MutedBg; break;
+            }
+            Theme.DrawPill(g, new Point(x + nameW + Px(10), y + Px(2)),
+                w.StatusLabel + " " + w.StatusLabelEn, fPill, pillFore, pillBack, Px(7), Px(4));
+
+            // 第二行：條件 · 進度 · 覆蓋率 · 手機通知
+            y += lineH + Px(2);
+            var bits = new List<string>();
+            bits.Add(w.ConditionLabel);
+            if (w.ShowsProgress)
+                bits.Add(w.ProgressPercent >= 0
+                    ? string.Format("目前進度 {0:0}%", w.ProgressPercent) : "進度 學習中");
+            bits.Add(string.Format("看得到的時間 {0:0}%", w.CoveragePercent));
+            if (w.PushesToPhone) bits.Add("會推手機通知");
+            string detail = string.Join(" · ", bits.ToArray());
+
+            int contentW = body.Width - closeZone - Px(24);
+            TextRenderer.DrawText(g, detail, fRowDetail, new Rectangle(x, y, contentW, lineH),
+                Theme.TextDim,
+                TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis | TextFormatFlags.VerticalCenter);
+
+            // 第三行：進度條，或看不到畫面時的原因
+            y += lineH;
+            if (w.Status == WatchStatus.Blind && w.StatusDetail.Length > 0)
+            {
+                TextRenderer.DrawText(g, w.StatusDetail, fRowDetail,
+                    new Rectangle(x, y, contentW, lineH), Theme.WarnText,
+                    TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis
+                    | TextFormatFlags.VerticalCenter);
+            }
+            else if (w.ShowsProgress && w.ProgressPercent >= 0)
+            {
+                int barW = contentW - Px(16);
+                int barY = y + lineH / 2 - Px(2);
+                Theme.FillRounded(g, new Rectangle(x, barY, barW, Px(4)), Px(2),
+                                  Theme.FromHex("#2F2C38"));
+                int fillW = (int)(barW * Math.Min(100, w.ProgressPercent) / 100.0);
+                if (fillW > 0)
+                    Theme.FillRounded(g, new Rectangle(x, barY, fillW, Px(4)), Px(2), Theme.Accent);
+            }
+            else if (w.StatusDetail.Length > 0)
+            {
+                TextRenderer.DrawText(g, w.StatusDetail, fRowDetail,
+                    new Rectangle(x, y, contentW, lineH), Theme.TextFaint,
+                    TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis
+                    | TextFormatFlags.VerticalCenter);
+            }
+
+            // 關閉鈕
+            Rectangle cr = CloseRectFor(full);
+            bool hot = cr.Contains(list.PointToClient(Cursor.Position));
+            Theme.DrawRounded(g, cr, Px(6), hot ? Theme.CloseHot : Theme.CloseBorder, 1f);
+            using (var pen = new Pen(hot ? Theme.CloseHot : Theme.MutedText, 1.4f))
+            {
+                var old = g.SmoothingMode;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+                int in2 = cr.Width / 3;
+                g.DrawLine(pen, cr.Left + in2, cr.Top + in2, cr.Right - in2, cr.Bottom - in2);
+                g.DrawLine(pen, cr.Right - in2, cr.Top + in2, cr.Left + in2, cr.Bottom - in2);
+                g.SmoothingMode = old;
+            }
+        }
+
+        void DrawLogRow(object sender, DrawItemEventArgs e)
+        {
+            if (e.Index < 0) return;
+            Graphics g = e.Graphics;
+            var le = log.Items[e.Index] as LogEntry;
+            using (var b = new SolidBrush(Theme.LogBg)) g.FillRectangle(b, e.Bounds);
+            using (var p = new Pen(Theme.LogLine))
+                g.DrawLine(p, e.Bounds.Left + Px(14), e.Bounds.Bottom - 1,
+                              e.Bounds.Right - Px(14), e.Bounds.Bottom - 1);
+            if (le == null) return;
+
+            TextRenderer.DrawText(g, le.Time.ToString("HH:mm:ss"), fLogTime,
+                new Rectangle(e.Bounds.X + Px(16), e.Bounds.Y, Px(80), e.Bounds.Height),
+                Theme.TextFaint, TextFormatFlags.NoPadding | TextFormatFlags.VerticalCenter);
+
+            var area = new Rectangle(e.Bounds.X + Px(96), e.Bounds.Y,
+                                     e.Bounds.Width - Px(110), e.Bounds.Height);
+            TextRenderer.DrawText(g, le.Text, fLog, area, Theme.LogText,
+                TextFormatFlags.NoPadding | TextFormatFlags.EndEllipsis
+                | TextFormatFlags.VerticalCenter);
+        }
+
+        // ------------------------------------------------------------------
+        // 互動
+        // ------------------------------------------------------------------
+
         void OnListMouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left) return;
@@ -181,7 +398,9 @@ namespace ScreenWatch
 
         void OnListMouseMove(object sender, MouseEventArgs e)
         {
-            list.Cursor = CloseHitTest(e.Location) != null ? Cursors.Hand : Cursors.Default;
+            bool onClose = CloseHitTest(e.Location) != null;
+            list.Cursor = onClose ? Cursors.Hand : Cursors.Default;
+            list.Invalidate();          // 讓 ✕ 的 hover 效果重畫
         }
 
         void OnListDoubleClick(object sender, EventArgs e)
@@ -199,49 +418,6 @@ namespace ScreenWatch
             if (h != null) h(w);
         }
 
-        void OnDrawItem(object sender, DrawItemEventArgs e)
-        {
-            if (e.Index < 0) return;
-            bool selected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
-            Color back = selected ? SystemColors.Highlight : list.BackColor;
-            Color fore = selected ? SystemColors.HighlightText : list.ForeColor;
-
-            object item = list.Items[e.Index];
-            Watch w = item as Watch;
-            string text = w != null ? w.Describe() : Convert.ToString(item);
-            if (w == null) fore = selected ? SystemColors.HighlightText
-                                           : Color.FromArgb(120, 120, 120);
-            if (w != null && w.Status == WatchStatus.Blind && !selected)
-                fore = Color.FromArgb(190, 60, 40);
-
-            using (var b = new SolidBrush(back)) e.Graphics.FillRectangle(b, e.Bounds);
-
-            Rectangle textArea = new Rectangle(e.Bounds.Left + Px(4), e.Bounds.Top + Px(3),
-                Math.Max(1, e.Bounds.Width - closeZone - Px(6)), e.Bounds.Height);
-            using (var b = new SolidBrush(fore))
-            using (var sf = new StringFormat())
-            {
-                sf.FormatFlags = StringFormatFlags.NoWrap;
-                sf.Trimming = StringTrimming.EllipsisCharacter;
-                e.Graphics.DrawString(text, e.Font, b, textArea, sf);
-            }
-
-            if (w != null)
-            {
-                Rectangle x = CloseRectFor(e.Bounds);
-                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-                using (var pen = new Pen(selected ? Color.White : Color.FromArgb(150, 60, 60), 2f))
-                {
-                    int inset = x.Width / 4;
-                    e.Graphics.DrawLine(pen, x.Left + inset, x.Top + inset,
-                                             x.Right - inset, x.Bottom - inset);
-                    e.Graphics.DrawLine(pen, x.Right - inset, x.Top + inset,
-                                             x.Left + inset, x.Bottom - inset);
-                }
-                e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.Default;
-            }
-        }
-
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             if (e.CloseReason == CloseReason.UserClosing)
@@ -252,19 +428,34 @@ namespace ScreenWatch
             base.OnFormClosing(e);
         }
 
-        /// <summary>
-        /// 只有在項目集合真的改變時才重建清單；否則單純重畫。
-        /// </summary>
+        // ------------------------------------------------------------------
+        // 資料更新
+        // ------------------------------------------------------------------
+
+        public Watch SelectedWatch { get { return list.SelectedItem as Watch; } }
+        public int RowCount { get { return list.Items.Count; } }
+
+        /// <summary>給 --uitest 用：模擬點某一列的叉叉，走的是跟滑鼠相同的命中判定。</summary>
+        public bool TestClickClose(int rowIndex)
+        {
+            if (rowIndex < 0 || rowIndex >= list.Items.Count) return false;
+            Rectangle x = CloseRectFor(list.GetItemRectangle(rowIndex));
+            Watch w = CloseHitTest(new Point(x.Left + x.Width / 2, x.Top + x.Height / 2));
+            if (w == null) return false;
+            Remove(w);
+            return true;
+        }
+
         public void RefreshList(List<Watch> watches)
         {
-            lastNotify.Text = Discord.Configured
-                ? "手機通知：已連結 Discord" + (Discord.LastResult.Length > 0
-                    ? "　上次傳送 " + Discord.LastResult : "")
-                : "手機通知：尚未設定";
+            watchCount = watches.Count;
+            phoneStatus = Discord.Configured ? "手機通知 · 已連結 Discord" : "手機通知 · 尚未設定";
+            header.Invalidate();
+            footer.Invalidate();
 
             if (SameItems(watches))
             {
-                list.Invalidate();          // 文字是自己畫的，重畫就會拿到最新的 Describe()
+                list.Invalidate();      // 內容是自己畫的，重畫就會拿到最新狀態
                 return;
             }
 
@@ -272,7 +463,7 @@ namespace ScreenWatch
             list.BeginUpdate();
             list.Items.Clear();
             if (watches.Count == 0)
-                list.Items.Add("（還沒有監視項目 —— 按上面的按鈕開始）");
+                list.Items.Add("還沒有監視項目 —— 按上面的按鈕開始");
             else
                 for (int i = 0; i < watches.Count; i++) list.Items.Add(watches[i]);
             list.EndUpdate();
@@ -294,12 +485,86 @@ namespace ScreenWatch
             return true;
         }
 
-        /// <summary>把一則通知記進紀錄。最新的放最上面。</summary>
         public void AddHistory(string line)
         {
-            history.Items.Insert(0, string.Format("{0:HH:mm:ss}  {1}", DateTime.Now, line));
-            while (history.Items.Count > 200) history.Items.RemoveAt(history.Items.Count - 1);
-            history.TopIndex = 0;
+            var le = new LogEntry();
+            le.Time = DateTime.Now;
+            le.Text = line;
+            log.Items.Insert(0, le);
+            while (log.Items.Count > 200) log.Items.RemoveAt(log.Items.Count - 1);
+            log.TopIndex = 0;
+            logLabel.Invalidate();
+        }
+    }
+
+    /// <summary>主要動作按鈕：橘色底、雙行文字、hover 變亮。</summary>
+    public sealed class AccentButton : Control
+    {
+        bool hot;
+        public string Title = "";
+        public string Subtitle = "";
+
+        public AccentButton()
+        {
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint
+                     | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            Cursor = Cursors.Hand;
+            BackColor = Theme.Bg;
+        }
+
+        protected override void OnMouseEnter(EventArgs e) { hot = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { hot = false; Invalidate(); base.OnMouseLeave(e); }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            Graphics g = e.Graphics;
+            using (var b = new SolidBrush(Theme.Bg)) g.FillRectangle(b, ClientRectangle);
+
+            int m = Margin.Left;
+            var r = new Rectangle(m, 0, Math.Max(1, ClientSize.Width - m * 2), ClientSize.Height);
+            Theme.FillRounded(g, r, (int)(8 * Native.SystemScale()), hot ? Theme.AccentHot : Theme.Accent);
+
+            var fT = new Font("Segoe UI", 14f * (float)Native.SystemScale(), FontStyle.Bold);
+            var fS = new Font("Segoe UI", 9.5f * (float)Native.SystemScale());
+            try
+            {
+                Size tS = TextRenderer.MeasureText(g, Title, fT);
+                Size sS = TextRenderer.MeasureText(g, Subtitle, fS);
+                int gap = (int)(12 * Native.SystemScale());
+                int total = tS.Width + gap + sS.Width;
+                int x = r.X + (r.Width - total) / 2;
+                int y = r.Y + (r.Height - tS.Height) / 2;
+                TextRenderer.DrawText(g, Title, fT, new Point(x, y), Theme.AccentInk,
+                                      TextFormatFlags.NoPadding);
+                TextRenderer.DrawText(g, Subtitle, fS,
+                    new Point(x + tS.Width + gap, y + (tS.Height - sS.Height) / 2 + 1),
+                    Color.FromArgb(150, Theme.AccentInk), TextFormatFlags.NoPadding);
+            }
+            finally { fT.Dispose(); fS.Dispose(); }
+        }
+    }
+
+    /// <summary>頁尾的文字連結。</summary>
+    public sealed class LinkText : Control
+    {
+        bool hot;
+
+        public LinkText()
+        {
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint
+                     | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            Cursor = Cursors.Hand;
+            BackColor = Theme.FooterBg;
+        }
+
+        protected override void OnMouseEnter(EventArgs e) { hot = true; Invalidate(); base.OnMouseEnter(e); }
+        protected override void OnMouseLeave(EventArgs e) { hot = false; Invalidate(); base.OnMouseLeave(e); }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            using (var b = new SolidBrush(Theme.FooterBg)) e.Graphics.FillRectangle(b, ClientRectangle);
+            TextRenderer.DrawText(e.Graphics, Text, Font, new Point(0, 0),
+                hot ? Theme.Accent : Theme.TextSoft, TextFormatFlags.NoPadding);
         }
     }
 }

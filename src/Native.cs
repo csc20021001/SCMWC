@@ -49,6 +49,7 @@ namespace ScreenWatch
         public const uint SWP_NOSIZE = 0x0001;
         public const uint SWP_NOZORDER = 0x0004;
         public const uint SWP_NOACTIVATE = 0x0010;
+        public const uint SWP_FRAMECHANGED = 0x0020;
         public const int OFFSCREEN_XY = -32000;
         public const uint EVENT_SYSTEM_MINIMIZESTART = 0x0016;
         public const uint WINEVENT_OUTOFCONTEXT = 0x0000;
@@ -89,6 +90,26 @@ namespace ScreenWatch
             uint attr, out int value, int size);
 
         public const uint DWMWA_CLOAKED = 14;
+        public const uint DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
+
+        [DllImport("dwmapi.dll")] public static extern int DwmSetWindowAttribute(IntPtr hwnd,
+            uint attr, ref int value, int size);
+
+        /// <summary>讓標題列跟著深色主題走，不然亮色標題列配深色內容很突兀。</summary>
+        public static void UseDarkTitleBar(IntPtr hwnd)
+        {
+            try
+            {
+                int on = 1;
+                // 20 是 Win10 2004 之後的值；更舊的版本用 19。兩個都試。
+                if (DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref on, 4) != 0)
+                    DwmSetWindowAttribute(hwnd, 19, ref on, 4);
+                // 不強制重畫非工作區的話，標題列要等下一次改變大小才會變色
+                SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0,
+                    SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+            }
+            catch (Exception) { }
+        }
 
         /// <summary>
         /// 視窗是否被 DWM 隱形。Win11 上很多 UWP 視窗一直存在但是 cloaked，
