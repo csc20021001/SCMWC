@@ -1,0 +1,160 @@
+using System;
+using System.Drawing;
+using System.IO;
+using System.Net;
+using System.Text;
+using System.Threading;
+
+namespace ScreenWatch
+{
+    /// <summary>
+    /// 推播到 Discord webhook。電腦在跑東西時人可以出去吃飯，手機收通知。
+    ///
+    /// 一律在背景執行緒送出：網路卡住不能拖住監視迴圈。
+    /// </summary>
+    public static class Discord
+    {
+        /// <summary>最後一次送出的結果，給 UI 顯示。</summary>
+        public static string LastResult = "";
+
+        public static bool Configured
+        {
+            get
+            {
+                string u = Config.DiscordWebhook;
+                return u.Length > 0 && (u.StartsWith("http://") || u.StartsWith("https://"));
+            }
+        }
+
+        public static void Send(string text, Bitmap image)
+        {
+            if (!Configured)
+            {
+                if (image != null) image.Dispose();
+                return;
+            }
+            string url = Config.DiscordWebhook;
+            bool attach = Config.DiscordAttachImage && image != null;
+            byte[] png = null;
+            if (attach)
+            {
+                using (var ms = new MemoryStream())
+                {
+                    image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                    png = ms.ToArray();
+                }
+            }
+            if (image != null) image.Dispose();
+
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                try
+                {
+                    LastResult = png != null ? PostMultipart(url, text, png) : PostJson(url, text);
+                }
+                catch (WebException ex)
+                {
+                    LastResult = "失敗：" + Describe(ex);
+                }
+                catch (Exception ex)
+                {
+                    LastResult = "失敗：" + ex.Message;
+                }
+            });
+        }
+
+        static string Describe(WebException ex)
+        {
+            var r = ex.Response as HttpWebResponse;
+            if (r == null) return ex.Message;
+            string body = "";
+            try
+            {
+                using (var s = new StreamReader(r.GetResponseStream()))
+                    body = s.ReadToEnd();
+            }
+            catch (Exception) { }
+            return string.Format("HTTP {0} {1}", (int)r.StatusCode,
+                body.Length > 200 ? body.Substring(0, 200) : body);
+        }
+
+        static HttpWebRequest NewRequest(string url)
+        {
+            try
+            {
+                // Discord 需要 TLS 1.2；舊的 .NET Framework 預設值不一定夠。
+                ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+                // .NET 預設會加 Expect: 100-continue，有些 webhook 端點／CDN 會擋。
+                ServicePointManager.Expect100Continue = false;
+            }
+            catch (Exception) { }
+            var req = (HttpWebRequest)WebRequest.Create(url);
+            req.Method = "POST";
+            req.ServicePoint.Expect100Continue = false;
+            req.UserAgent = "ScreenWatch/0.1";
+            req.Timeout = 15000;
+            req.ReadWriteTimeout = 15000;
+            return req;
+        }
+
+        static string PostJson(string url, string text)
+        {
+            var req = NewRequest(url);
+            req.ContentType = "application/json";
+            byte[] body = Encoding.UTF8.GetBytes("{\"content\":\"" + JsonEscape(text) + "\"}");
+            req.ContentLength = body.Length;
+            using (var s = req.GetRequestStream()) s.Write(body, 0, body.Length);
+            using (var resp = (HttpWebResponse)req.GetResponse())
+                return string.Format("已送出 (HTTP {0})", (int)resp.StatusCode);
+        }
+
+        static string PostMultipart(string url, string text, byte[] png)
+        {
+            string boundary = "----ScreenWatch" + DateTime.UtcNow.Ticks.ToString("x");
+            var req = NewRequest(url);
+            req.ContentType = "multipart/form-data; boundary=" + boundary;
+
+            var head = new StringBuilder();
+            head.Append("--").Append(boundary).Append("\r\n");
+            head.Append("Content-Disposition: form-data; name=\"payload_json\"\r\n");
+            head.Append("Content-Type: application/json\r\n\r\n");
+            head.Append("{\"content\":\"").Append(JsonEscape(text)).Append("\"}\r\n");
+            head.Append("--").Append(boundary).Append("\r\n");
+            head.Append("Content-Disposition: form-data; name=\"files[0]\"; filename=\"change.png\"\r\n");
+            head.Append("Content-Type: image/png\r\n\r\n");
+
+            byte[] pre = Encoding.UTF8.GetBytes(head.ToString());
+            byte[] post = Encoding.UTF8.GetBytes("\r\n--" + boundary + "--\r\n");
+            req.ContentLength = pre.Length + png.Length + post.Length;
+            using (var s = req.GetRequestStream())
+            {
+                s.Write(pre, 0, pre.Length);
+                s.Write(png, 0, png.Length);
+                s.Write(post, 0, post.Length);
+            }
+            using (var resp = (HttpWebResponse)req.GetResponse())
+                return string.Format("已送出含截圖 (HTTP {0})", (int)resp.StatusCode);
+        }
+
+        static string JsonEscape(string s)
+        {
+            var sb = new StringBuilder();
+            foreach (char c in s)
+            {
+                switch (c)
+                {
+                    case '"': sb.Append("\\\""); break;
+                    case '\\': sb.Append("\\\\"); break;
+                    case '\n': sb.Append("\\n"); break;
+                    case '\r': sb.Append("\\r"); break;
+                    case '\t': sb.Append("\\t"); break;
+                    default:
+                        if (c < 0x20) sb.Append("\\u").Append(((int)c).ToString("x4"));
+                        else sb.Append(c);
+                        break;
+                }
+            }
+            return sb.ToString();
+        }
+    }
+}

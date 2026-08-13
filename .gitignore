@@ -1,0 +1,12 @@
+# 建置產物：用 build.ps1 重新產生就好
+bin/
+dist/
+
+# 測試輸出
+*.log
+selftest-shot.png
+
+# 編輯器
+.vs/
+*.user
+*.suo
