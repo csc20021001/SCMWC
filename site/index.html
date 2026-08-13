@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>ScreenWatch — 框住螢幕任何一塊，變了就通知你</title>
 <meta name="description" content="Windows 工具：框住螢幕上任何一塊區域，畫面變化符合條件時通知你。支援進度條跑完、顏色改變等條件，可推播到手機。">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="ScreenWatch — 框住螢幕任何一塊，變了就通知你">
+<meta property="og:description" content="不管那塊畫面屬於哪個程式，它只看畫素，不需要跟任何程式整合。Windows 免費下載。">
+<meta property="og:image" content="screenshot.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ScreenWatch — 框住螢幕任何一塊，變了就通知你">
+<meta name="twitter:description" content="不管那塊畫面屬於哪個程式，它只看畫素，不需要跟任何程式整合。Windows 免費下載。">
+<meta name="twitter:image" content="screenshot.png">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2316151a'/%3E%3Crect x='9' y='9' width='14' height='14' rx='4' fill='%23e8734a'/%3E%3C/svg%3E">
 <style>
   :root{
     --bg:#16151a; --line:#2a2830; --row:#1e1c24; --foot:#1a1820;
@@ -30,6 +41,8 @@
   .cta:hover{background:var(--accent-hot)}
   .cta small{font-weight:500;font-size:12.5px;opacity:.72}
   .meta{margin:14px 0 0;font-size:13.5px;color:var(--faint)}
+  .shot{display:block;width:100%;height:auto;margin:42px 0 8px;
+        border:1px solid var(--line);border-radius:12px}
   section{padding:52px 0;border-top:1px solid var(--line)}
   h2{font-size:21px;margin:0 0 22px;letter-spacing:-.01em}
   .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(255px,1fr))}
@@ -65,11 +78,16 @@
       Works with any application, because it only looks at pixels.
     </p>
 
-    <a class="cta" href="ScreenWatch-Setup.exe" download>
+    <!-- 指向 GitHub Release 的 latest：出新版時網站不用改，也會有下載計數 -->
+    <a class="cta" href="https://github.com/csc20021001/ScreenWatch-Releases/releases/latest/download/ScreenWatch-Setup.exe">
       免費下載
       <small>Windows 10 / 11 · 約 110 KB · 免安裝管理員權限</small>
     </a>
-    <p class="meta">目前所有功能免費開放，沒有使用期限，也沒有廣告或追蹤。</p>
+    <p class="meta">目前所有功能免費開放，沒有使用期限，也沒有廣告或追蹤。<br>
+      <a href="https://github.com/csc20021001/ScreenWatch-Releases/releases">查看所有版本</a></p>
+
+    <img class="shot" src="screenshot.png" width="1043" height="921"
+         alt="ScreenWatch 主視窗：監視清單顯示目標名稱、狀態、通知條件與進度，下方是通知紀錄">
   </header>
 
   <section>
@@ -120,8 +138,9 @@
         <li>再點「仍要執行」</li>
       </ol>
       <p style="margin:14px 0 0;color:var(--faint);font-size:13.5px">
-        不放心的話，可以先把安裝檔上傳到 VirusTotal 掃描，或直接看
-        <a href="#source">原始碼</a>自己編譯。簽章憑證會在之後補上。
+        不放心的話，可以先把安裝檔上傳到
+        <a href="https://www.virustotal.com/">VirusTotal</a> 用七十幾種防毒引擎掃描再決定。
+        簽章憑證會在之後補上。
       </p>
     </div>
   </section>
@@ -160,8 +179,8 @@
       <a href="EULA.txt">使用條款與免責聲明</a>。</p>
   </section>
 
-  <section id="source">
-    <h2>系統需求與原始碼</h2>
+  <section id="requirements">
+    <h2>系統需求</h2>
     <table>
       <tr><td>作業系統</td><td>Windows 10 1607 以上 / Windows 11</td></tr>
       <tr><td>相依套件</td><td>.NET Framework 4.x（Windows 內建，不需另外安裝）</td></tr>
@@ -173,7 +192,11 @@
 
   <footer>
     <p>ScreenWatch 0.1.0 · 與 Microsoft、Discord 及任何被監視的軟體均無關聯。</p>
-    <p><a href="EULA.txt">使用條款與免責聲明</a></p>
+    <p>
+      <a href="EULA.txt">使用條款與免責聲明</a> ·
+      <a href="https://github.com/csc20021001/ScreenWatch-Releases">GitHub</a> ·
+      <a href="https://github.com/csc20021001/ScreenWatch-Releases/issues">回報問題</a>
+    </p>
   </footer>
 </div>
 
