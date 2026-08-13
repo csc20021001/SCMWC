@@ -579,6 +579,12 @@ namespace ScreenWatch
                 SelfTest.RateTest(args[1]);
                 return;
             }
+            if (args.Length >= 2 && args[0] == "--badgetest")
+            {
+                Native.MakeDpiAware();
+                SelfTest.BadgeTest(args[1]);
+                return;
+            }
             if (args.Length >= 2 && args[0] == "--bench")
             {
                 Native.MakeDpiAware();

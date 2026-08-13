@@ -289,32 +289,8 @@ namespace ScreenWatch
 
         public static IntPtr TopWindowAt(int sx, int sy, IntPtr me)
         {
-            IntPtr result = IntPtr.Zero;
-            Rectangle virt = SystemInformation.VirtualScreen;
-            uint self = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
-
-            EnumWindowsProc cb = delegate(IntPtr h, IntPtr p)
-            {
-                if (result != IntPtr.Zero) return false;      // EnumWindows 是由上而下
-                if (h == me) return true;
-                // 我們自己的視窗（主視窗、浮動的關閉鈕）都不能被當成監視目標
-                uint pid;
-                Native.GetWindowThreadProcessId(h, out pid);
-                if (pid == self) return true;
-                if (!Native.IsWindowVisible(h)) return true;
-                if (Native.IsIconic(h)) return true;
-                if (Native.IsCloaked(h)) return true;
-                RECT r;
-                if (!Native.GetWindowRect(h, out r)) return true;
-                if (r.Width < 40 || r.Height < 40) return true;
-                // 桌面 / Program Manager 之類的整螢幕視窗不算目標
-                if (r.Width >= virt.Width && r.Height >= virt.Height) return true;
-                if (sx < r.Left || sx >= r.Right || sy < r.Top || sy >= r.Bottom) return true;
-                result = h;
-                return false;
-            };
-            Native.EnumWindows(cb, IntPtr.Zero);
-            return result;
+            // 挑目標時要連我們自己的視窗（主視窗、浮動關閉鈕）一起排除
+            return Native.TopWindowAt(sx, sy, me, true);
         }
     }
 }

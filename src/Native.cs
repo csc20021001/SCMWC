@@ -12,6 +12,13 @@ namespace ScreenWatch
     }
 
     [StructLayout(LayoutKind.Sequential)]
+    public struct POINT
+    {
+        public int X, Y;
+        public POINT(int x, int y) { X = x; Y = y; }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
     public struct BITMAPINFOHEADER
     {
         public uint biSize;
@@ -67,6 +74,72 @@ namespace ScreenWatch
         [DllImport("user32.dll")] public static extern bool IsWindow(IntPtr hwnd);
         [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hwnd);
         [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hwnd, int cmd);
+        [DllImport("user32.dll")] public static extern IntPtr WindowFromPoint(POINT p);
+        [DllImport("user32.dll")] public static extern IntPtr GetAncestor(IntPtr hwnd, int flags);
+        public const int GA_ROOT = 2;
+
+        /// <summary>
+        /// 座標底下最上層的「真正的」視窗。
+        ///
+        /// 不能用 WindowFromPoint：它會打到「工作切換」那類使用者看不見的
+        /// TOPMOST 系統視窗，也會打到呼叫者自己的遮罩。改成照 z 序列舉，
+        /// 濾掉隱形（cloaked）、最小化、尺寸過小、整個桌面大小的殼層視窗。
+        /// </summary>
+        public static IntPtr TopWindowAt(int sx, int sy, IntPtr exclude, bool skipOwnProcess)
+        {
+            IntPtr result = IntPtr.Zero;
+            System.Drawing.Rectangle virt = System.Windows.Forms.SystemInformation.VirtualScreen;
+            uint self = (uint)System.Diagnostics.Process.GetCurrentProcess().Id;
+
+            EnumWindowsProc cb = delegate(IntPtr h, IntPtr p)
+            {
+                if (result != IntPtr.Zero) return false;      // EnumWindows 是由上而下
+                if (h == exclude) return true;
+                if (skipOwnProcess)
+                {
+                    uint pid;
+                    GetWindowThreadProcessId(h, out pid);
+                    if (pid == self) return true;
+                }
+                if (!IsWindowVisible(h)) return true;
+                if (IsIconic(h)) return true;
+                if (IsCloaked(h)) return true;
+                RECT r;
+                if (!GetWindowRect(h, out r)) return true;
+                if (r.Width < 40 || r.Height < 40) return true;
+                if (r.Width >= virt.Width && r.Height >= virt.Height) return true;
+                if (sx < r.Left || sx >= r.Right || sy < r.Top || sy >= r.Bottom) return true;
+                result = h;
+                return false;
+            };
+            EnumWindows(cb, IntPtr.Zero);
+            return result;
+        }
+
+        /// <summary>
+        /// 這個視窗在指定的矩形範圍裡，現在是不是真的看得見（沒有被別的視窗蓋住）。
+        ///
+        /// 取幾個點做命中測試：只要有一個點打到目標本身，就算看得見。
+        /// 沒有這個判斷的話，浮動關閉鈕會一直蓋在使用者正在用的程式上面。
+        /// </summary>
+        public static bool IsVisibleAt(IntPtr hwnd, System.Drawing.Rectangle region)
+        {
+            if (region.Width < 2 || region.Height < 2) return false;
+            int insetX = Math.Max(1, region.Width / 8);
+            int insetY = Math.Max(1, region.Height / 8);
+            var pts = new POINT[]
+            {
+                new POINT(region.Left + region.Width / 2, region.Top + region.Height / 2),
+                new POINT(region.Left + insetX, region.Top + insetY),
+                new POINT(region.Right - insetX, region.Top + insetY),
+                new POINT(region.Left + insetX, region.Bottom - insetY),
+                new POINT(region.Right - insetX, region.Bottom - insetY),
+            };
+            // 浮動關閉鈕本身只有 32x32，會被上面的尺寸下限濾掉，不會擋到自己。
+            for (int i = 0; i < pts.Length; i++)
+                if (TopWindowAt(pts[i].X, pts[i].Y, IntPtr.Zero, false) == hwnd) return true;
+            return false;
+        }
         [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr hwnd, IntPtr after,
             int x, int y, int cx, int cy, uint flags);
         [DllImport("user32.dll")] public static extern int FillRect(IntPtr hdc, ref RECT r, IntPtr brush);

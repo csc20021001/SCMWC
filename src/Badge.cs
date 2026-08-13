@@ -114,11 +114,17 @@ namespace ScreenWatch
 
         public void SyncVisibility()
         {
-            bool show = Target != null
-                        && Target.Status != WatchStatus.Dead
-                        && !Target.IsParked
-                        && Native.IsWindow(Target.Hwnd)
-                        && !Native.IsIconic(Target.Hwnd);
+            bool alive = Target != null
+                         && Target.Status != WatchStatus.Dead
+                         && !Target.IsParked
+                         && Native.IsWindow(Target.Hwnd)
+                         && !Native.IsIconic(Target.Hwnd)
+                         && !Native.IsCloaked(Target.Hwnd);
+
+            // 被監視的區域被別的視窗蓋住時就收起來。
+            // 少了這個判斷，叉叉會一直浮在使用者正在用的程式上面。
+            bool show = alive && Native.IsVisibleAt(Target.Hwnd, Target.RefreshScreenRegion());
+
             if (show)
             {
                 Reposition();

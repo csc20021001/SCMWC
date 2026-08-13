@@ -563,6 +563,60 @@ namespace ScreenWatch
         }
 
         /// <summary>
+        /// 印出浮動關閉鈕的顯示判斷是怎麼算出來的。
+        /// 用法：ScreenWatch.exe --badgetest "視窗標題片段"
+        /// </summary>
+        public static void BadgeTest(string titlePart)
+        {
+            Native.MakeDpiAware();
+            var sb = new StringBuilder();
+            IntPtr hwnd = FindWindow(titlePart);
+            if (hwnd == IntPtr.Zero)
+            {
+                sb.AppendLine("找不到視窗：" + titlePart);
+                Write("badgetest.log", sb);
+                return;
+            }
+            RECT r;
+            Native.GetWindowRect(hwnd, out r);
+            var w = new Watch(hwnd, new Rectangle(r.Left, r.Top, r.Width, r.Height));
+            Rectangle region = w.RefreshScreenRegion();
+
+            sb.AppendLine(string.Format("目標 hwnd={0} 「{1}」", hwnd.ToInt64(), Native.TitleOf(hwnd)));
+            sb.AppendLine(string.Format("視窗 rect = ({0},{1})-({2},{3})", r.Left, r.Top, r.Right, r.Bottom));
+            sb.AppendLine(string.Format("監視區域   = {0}", region));
+            sb.AppendLine();
+            sb.AppendLine(string.Format("IsWindow   = {0}", Native.IsWindow(hwnd)));
+            sb.AppendLine(string.Format("IsIconic   = {0}", Native.IsIconic(hwnd)));
+            sb.AppendLine(string.Format("IsCloaked  = {0}", Native.IsCloaked(hwnd)));
+            sb.AppendLine(string.Format("IsParked   = {0}", w.IsParked));
+            sb.AppendLine();
+
+            int insetX = Math.Max(1, region.Width / 8);
+            int insetY = Math.Max(1, region.Height / 8);
+            var pts = new Point[]
+            {
+                new Point(region.Left + region.Width / 2, region.Top + region.Height / 2),
+                new Point(region.Left + insetX, region.Top + insetY),
+                new Point(region.Right - insetX, region.Top + insetY),
+                new Point(region.Left + insetX, region.Bottom - insetY),
+                new Point(region.Right - insetX, region.Bottom - insetY),
+            };
+            sb.AppendLine("取樣點的命中結果：");
+            foreach (Point p in pts)
+            {
+                IntPtr top = Native.TopWindowAt(p.X, p.Y, IntPtr.Zero, false);
+                sb.AppendLine(string.Format("  ({0,5},{1,5}) -> hwnd={2,-10} 「{3}」{4}",
+                    p.X, p.Y, top.ToInt64(), Native.TitleOf(top),
+                    top == hwnd ? "   ← 命中目標" : ""));
+            }
+            sb.AppendLine();
+            sb.AppendLine(string.Format("IsVisibleAt 結論 = {0}", Native.IsVisibleAt(hwnd, region)));
+            w.Dispose();
+            Write("badgetest.log", sb);
+        }
+
+        /// <summary>
         /// 印出某座標會選到哪個視窗。用法：ScreenWatch.exe --pick x,y
         /// </summary>
         public static void Pick(string coords)
