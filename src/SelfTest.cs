@@ -563,6 +563,89 @@ namespace ScreenWatch
         }
 
         /// <summary>
+        /// 走完整條授權流程：啟用 → 讀本機 → 重新驗證 → 竄改偵測 → 停用。
+        /// 用法：ScreenWatch.exe --licensetest <api-base-url>
+        /// </summary>
+        public static void LicenseTest(string apiBase)
+        {
+            var sb = new StringBuilder();
+            Config.Load();
+            string savedKey = Config.Get("license.key", "");
+            string savedInst = Config.Get("license.instance", "");
+            string savedSig = Config.Get("license.sig", "");
+            string savedStatus = Config.Get("license.status", "");
+            string savedCheck = Config.Get("license.lastCheckUtc", "");
+
+            Config.Set("license.apiBase", apiBase);
+            sb.AppendLine("端點 : " + apiBase);
+            sb.AppendLine("裝置 : " + License.DeviceId());
+            sb.AppendLine();
+
+            bool bad = License.Activate("DEAD-KEY-9999");
+            sb.AppendLine(string.Format("1. 用錯的授權碼啟用      : {0}  ({1})",
+                bad ? "成功（不對）" : "被拒（正確）", License.LastError));
+
+            bool ok = License.Activate("GOOD-KEY-1234");
+            sb.AppendLine(string.Format("2. 用正確的授權碼啟用    : {0}  狀態={1}  instance={2}",
+                ok ? "成功" : "失敗 " + License.LastError, License.State,
+                Config.Get("license.instance", "")));
+
+            License.LoadLocal();
+            sb.AppendLine(string.Format("3. 重新讀本機資料        : 狀態={0}  IsPro={1}",
+                License.State, License.IsPro));
+
+            License.Validate();
+            sb.AppendLine(string.Format("4. 連線重新驗證          : 狀態={0}", License.State));
+
+            // 模擬把 config 複製到別台電腦：簽章對不上
+            Config.Set("license.sig", "tampered");
+            License.LoadLocal();
+            sb.AppendLine(string.Format("5. 竄改本機授權資料      : 狀態={0}  ({1})",
+                License.State, License.LastError));
+
+            // 模擬離線很久
+            Config.Set("license.key", "GOOD-KEY-1234");
+            Config.Set("license.instance", "inst-abc-123");
+            Config.Set("license.status", "active");
+            Config.Set("license.lastCheckUtc",
+                DateTime.UtcNow.AddDays(-5).ToString("o"));
+            Config.Set("license.sig", SignFor());
+            License.LoadLocal();
+            sb.AppendLine(string.Format("6. 離線 5 天（寬限期內）  : 狀態={0}  IsPro={1}",
+                License.State, License.IsPro));
+
+            Config.Set("license.lastCheckUtc",
+                DateTime.UtcNow.AddDays(-30).ToString("o"));
+            Config.Set("license.sig", SignFor());
+            License.LoadLocal();
+            sb.AppendLine(string.Format("7. 離線 30 天（超過寬限） : 狀態={0}  IsPro={1}",
+                License.State, License.IsPro));
+
+            License.Activate("GOOD-KEY-1234");
+            bool off = License.Deactivate();
+            sb.AppendLine(string.Format("8. 停用                  : {0}  狀態={1}",
+                off ? "成功" : "失敗 " + License.LastError, License.State));
+
+            // 還原使用者原本的設定，測試不留痕跡
+            Config.Set("license.apiBase", "");
+            Config.Set("license.key", savedKey);
+            Config.Set("license.instance", savedInst);
+            Config.Set("license.sig", savedSig);
+            Config.Set("license.status", savedStatus);
+            Config.Set("license.lastCheckUtc", savedCheck);
+            Config.Save();
+            sb.AppendLine();
+            sb.AppendLine("（已還原原本的設定）");
+            Write("licensetest.log", sb);
+        }
+
+        /// <summary>重算目前設定內容的簽章，測試模擬離線時要用。</summary>
+        static string SignFor()
+        {
+            return License.SignCurrent();
+        }
+
+        /// <summary>
         /// 印出浮動關閉鈕的顯示判斷是怎麼算出來的。
         /// 用法：ScreenWatch.exe --badgetest "視窗標題片段"
         /// </summary>

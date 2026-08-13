@@ -37,6 +37,13 @@ namespace ScreenWatch
         public TrayApp()
         {
             Config.Load();
+            License.LoadLocal();
+            if (License.NeedsRecheck())
+                System.Threading.ThreadPool.QueueUserWorkItem(delegate
+                {
+                    try { License.Validate(); }
+                    catch (Exception) { }
+                });
 
             tray = new NotifyIcon();
             tray.Icon = SystemIcons.Information;
@@ -49,6 +56,7 @@ namespace ScreenWatch
             menu.Items.Add("選取想要監視的區域…", null, delegate { AddWatch(); });
             menu.Items.Add("開啟主視窗", null, delegate { ShowMain(); });
             menu.Items.Add("設定手機通知…", null, delegate { EditDiscord(); });
+            menu.Items.Add("授權…", null, delegate { EditLicense(); });
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("把移到背景的視窗放回來", null, delegate { UnparkAll(); });
             menu.Items.Add(new ToolStripSeparator());
@@ -440,6 +448,12 @@ namespace ScreenWatch
             RefreshMain();
         }
 
+        void EditLicense()
+        {
+            using (var dlg = new LicenseForm()) dlg.ShowDialog();
+            RefreshMain();
+        }
+
         void EditDiscord()
         {
             using (var dlg = new DiscordSettingsForm())
@@ -577,6 +591,11 @@ namespace ScreenWatch
             {
                 Native.MakeDpiAware();
                 SelfTest.RateTest(args[1]);
+                return;
+            }
+            if (args.Length >= 2 && args[0] == "--licensetest")
+            {
+                SelfTest.LicenseTest(args[1]);
                 return;
             }
             if (args.Length >= 2 && args[0] == "--badgetest")

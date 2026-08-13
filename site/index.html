@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ScreenWatch — 框住螢幕任何一塊，變了就通知你</title>
+<meta name="description" content="Windows 工具：框住螢幕上任何一塊區域，畫面變化符合條件時通知你。支援進度條跑完、顏色改變等條件，可推播到手機。">
+<style>
+  :root{
+    --bg:#16151a; --line:#2a2830; --row:#1e1c24; --foot:#1a1820;
+    --text:#f4f2ef; --dim:#8b8598; --faint:#6f6a7a;
+    --accent:#e8734a; --accent-hot:#f08a62; --ink:#1b0f09;
+    --ok:#74d69b; --warn:#f0a87c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:16px/1.7 "Segoe UI",system-ui,-apple-system,"Noto Sans TC",sans-serif}
+  a{color:var(--accent)}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px}
+  header{padding:64px 0 8px}
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:36px}
+  .dot{width:14px;height:14px;border-radius:4px;background:var(--accent)}
+  .brand b{font-size:19px;letter-spacing:-.01em}
+  h1{font-size:clamp(30px,5.2vw,46px);line-height:1.25;margin:0 0 16px;letter-spacing:-.02em}
+  .lede{font-size:clamp(16px,2.2vw,19px);color:var(--dim);margin:0 0 12px;max-width:62ch}
+  .lede-en{font-size:15px;color:var(--faint);margin:0 0 36px;max-width:66ch}
+  .cta{display:inline-flex;flex-direction:column;gap:3px;align-items:center;
+       background:var(--accent);color:var(--ink);text-decoration:none;
+       padding:16px 34px;border-radius:10px;font-weight:700;font-size:18px}
+  .cta:hover{background:var(--accent-hot)}
+  .cta small{font-weight:500;font-size:12.5px;opacity:.72}
+  .meta{margin:14px 0 0;font-size:13.5px;color:var(--faint)}
+  section{padding:52px 0;border-top:1px solid var(--line)}
+  h2{font-size:21px;margin:0 0 22px;letter-spacing:-.01em}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(255px,1fr))}
+  .card{background:var(--row);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+  .card h3{margin:0 0 7px;font-size:15.5px}
+  .card p{margin:0;color:var(--dim);font-size:14px;line-height:1.65}
+  .notice{background:var(--row);border:1px solid var(--warn);border-radius:10px;padding:20px 22px}
+  .notice h3{margin:0 0 10px;font-size:16px;color:var(--warn)}
+  .notice ol{margin:10px 0 0;padding-left:22px;color:var(--dim);font-size:14.5px}
+  .notice li{margin:5px 0}
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  td{padding:9px 0;border-bottom:1px solid var(--line);color:var(--dim);vertical-align:top}
+  td:first-child{color:var(--text);width:34%;padding-right:16px}
+  tr:last-child td{border-bottom:0}
+  footer{padding:34px 0 60px;border-top:1px solid var(--line);
+         color:var(--faint);font-size:13.5px}
+  footer a{color:var(--dim)}
+  code{background:#121116;padding:2px 6px;border-radius:4px;font-size:13px;color:var(--dim)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="dot"></span><b>ScreenWatch</b></div>
+    <h1>框住螢幕任何一塊，<br>變了就通知你。</h1>
+    <p class="lede">
+      不管那塊畫面屬於哪個程式 —— Citrix、SAP、公司 2005 年寫的內部系統、
+      瀏覽器後台、算圖進度 —— 它只看畫素，不需要跟任何程式整合。
+    </p>
+    <p class="lede-en">
+      Watch any region of your screen and get notified when it changes.
+      Works with any application, because it only looks at pixels.
+    </p>
+
+    <a class="cta" href="ScreenWatch-Setup.exe" download>
+      免費下載
+      <small>Windows 10 / 11 · 約 110 KB · 免安裝管理員權限</small>
+    </a>
+    <p class="meta">目前所有功能免費開放，沒有使用期限，也沒有廣告或追蹤。</p>
+  </header>
+
+  <section>
+    <h2>它能做什麼</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>四種通知條件</h3>
+        <p>畫面有變化就通知、進度條跑完才通知、跑到指定 % 通知、顏色變了通知。
+           後三種是邊緣觸發，跑完只響一次，不會一直吵。</p>
+      </div>
+      <div class="card">
+        <h3>自己找出進度條</h3>
+        <p>直接框整個視窗就好，程式會在範圍內找出那條進度條。
+           就算它跑滿之後立刻歸零重跑，也抓得到。</p>
+      </div>
+      <div class="card">
+        <h3>推播到手機</h3>
+        <p>接上 Discord webhook，電腦在跑東西時人可以先去吃飯，
+           跑完手機會響。</p>
+      </div>
+      <div class="card">
+        <h3>最小化也繼續看</h3>
+        <p>最小化的視窗不會繪製，所以程式會把它移到背景繼續監視，
+           而不是叫你別按最小化。</p>
+      </div>
+      <div class="card">
+        <h3>不會靜默失效</h3>
+        <p>抓不到畫面時會明講原因，那段時間也會從「看得到的時間」扣掉。
+           通知紀錄讓你分辨是條件沒成立，還是 Windows 擋掉了通知。</p>
+      </div>
+      <div class="card">
+        <h3>很輕</h3>
+        <p>單一執行檔，不到 100 KB，沒有背景服務、沒有安裝時的相依套件。</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="notice">
+      <h3>下載時 Windows 會跳警告，這是正常的</h3>
+      <p style="margin:0;color:var(--dim);font-size:14.5px">
+        這個版本還沒有購買程式碼簽章憑證，所以 Microsoft Defender SmartScreen
+        會顯示「Windows 已保護您的電腦」。這代表「這個檔案還沒有累積足夠的下載信譽」，
+        不代表它被判定為惡意程式。
+      </p>
+      <ol>
+        <li>點「其他資訊」</li>
+        <li>再點「仍要執行」</li>
+      </ol>
+      <p style="margin:14px 0 0;color:var(--faint);font-size:13.5px">
+        不放心的話，可以先把安裝檔上傳到 VirusTotal 掃描，或直接看
+        <a href="#source">原始碼</a>自己編譯。簽章憑證會在之後補上。
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>你應該知道的事</h2>
+    <table>
+      <tr>
+        <td>它會移動你的視窗</td>
+        <td>被監視的視窗一旦最小化，程式會把它還原並移到螢幕可見範圍之外，
+            以便繼續擷取畫面。可以隨時從系統匣選單放回來，關閉程式時也會自動還原。</td>
+      </tr>
+      <tr>
+        <td>「跑完了」是推論</td>
+        <td>Windows 的進度條填滿時帶有動畫，若程式完成後立即重設，
+            畫面上可能從未出現完整填滿的狀態。這時會依「進度大幅倒退」推論已完成，
+            可能把失敗重試誤判為跑完。</td>
+      </tr>
+      <tr>
+        <td>不要用在關鍵用途</td>
+        <td>這是便利工具，不是監控或警報系統。醫療、工安、消防、交通、
+            自動交易等「沒收到通知就可能出事」的場景請不要使用。</td>
+      </tr>
+      <tr>
+        <td>手機推播會把資料送到 Discord</td>
+        <td>啟用後，視窗標題與觸發原因會傳到你指定的 Discord 頻道。
+            附上截圖的選項預設關閉。在公司環境使用前請自行確認合規。</td>
+      </tr>
+      <tr>
+        <td>有些畫面抓不到</td>
+        <td>全螢幕遊戲、有版權保護的影片視窗不允許其他程式讀取畫面。
+            這種情況清單上會顯示「看不到畫面」並說明原因。</td>
+      </tr>
+    </table>
+    <p class="meta">完整條款請見安裝時顯示的
+      <a href="EULA.txt">使用條款與免責聲明</a>。</p>
+  </section>
+
+  <section id="source">
+    <h2>系統需求與原始碼</h2>
+    <table>
+      <tr><td>作業系統</td><td>Windows 10 1607 以上 / Windows 11</td></tr>
+      <tr><td>相依套件</td><td>.NET Framework 4.x（Windows 內建，不需另外安裝）</td></tr>
+      <tr><td>安裝位置</td><td><code>%LOCALAPPDATA%\Programs\ScreenWatch</code>，不需要管理員權限</td></tr>
+      <tr><td>設定檔</td><td><code>%LOCALAPPDATA%\ScreenWatch\config.txt</code>，解除安裝時一併刪除</td></tr>
+      <tr><td>資料蒐集</td><td>沒有。不含分析、不含廣告，除了你自己設定的 Discord 推播之外不對外連線。</td></tr>
+    </table>
+  </section>
+
+  <footer>
+    <p>ScreenWatch 0.1.0 · 與 Microsoft、Discord 及任何被監視的軟體均無關聯。</p>
+    <p><a href="EULA.txt">使用條款與免責聲明</a></p>
+  </footer>
+</div>
+
+</body>
+</html>
