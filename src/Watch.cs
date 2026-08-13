@@ -309,10 +309,14 @@ namespace ScreenWatch
                     ? string.Format("　目前進度 {0:0}%", Trig.LastPercent)
                     : "　進度 學習中";
             string name = Title.Length > 26 ? Title.Substring(0, 26) + "…" : Title;
-            return string.Format("{0}　{1}　{2}{3}{4}{5}{6}",
-                name, StatusText.Of(Status), Trig.Describe(), pct, cover,
-                DiscordEnabled && Discord.Configured ? "　會推 Discord" : "",
-                StatusDetail.Length > 0 ? "　" + StatusDetail : "");
+
+            // 失敗原因要緊跟在狀態後面。放在整行最後的話，它會是第一個被
+            // 省略號截掉的東西 —— 使用者只看到「看不到畫面」卻不知道為什麼。
+            string why = StatusDetail.Length > 0 ? "：" + StatusDetail : "";
+
+            return string.Format("{0}　{1}{2}　{3}{4}{5}{6}",
+                name, StatusText.Of(Status), why, Trig.Describe(), pct, cover,
+                DiscordEnabled && Discord.Configured ? "　會推 Discord" : "");
         }
     }
 }
