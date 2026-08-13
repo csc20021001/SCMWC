@@ -69,9 +69,7 @@ namespace ScreenWatchSetup
             Directory.CreateDirectory(InstallDir);
 
             Extract("ScreenWatch.exe", Path.Combine(InstallDir, "ScreenWatch.exe"));
-            Extract("ProgressDemo.exe", Path.Combine(InstallDir, "ProgressDemo.exe"));
             Extract("EULA.txt", Path.Combine(InstallDir, "使用條款與免責聲明.txt"));
-            Extract("README.md", Path.Combine(InstallDir, "README.md"));
 
             // 安裝程式自己留一份當解除安裝用
             string setupCopy = Path.Combine(InstallDir, "Uninstall.exe");
@@ -151,7 +149,7 @@ namespace ScreenWatchSetup
 
         static void StopRunning()
         {
-            foreach (string n in new string[] { "ScreenWatch", "ProgressDemo" })
+            foreach (string n in new string[] { "ScreenWatch" })
             {
                 foreach (Process p in Process.GetProcessesByName(n))
                 {

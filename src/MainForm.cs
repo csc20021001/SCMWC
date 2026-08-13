@@ -89,7 +89,7 @@ namespace ScreenWatch
             bottom.Dock = DockStyle.Bottom;
             bottom.Height = Px(42);
 
-            discordBtn.Text = "Discord 推播設定…";
+            discordBtn.Text = "設定手機通知…";
             discordBtn.SetBounds(Px(6), Px(7), Px(150), Px(28));
             discordBtn.Click += delegate
             {
@@ -99,8 +99,8 @@ namespace ScreenWatch
             bottom.Controls.Add(discordBtn);
 
             // 用來分辨「條件沒成立」和「成立了但 Windows 沒把通知顯示出來」
-            testBtn.Text = "測試通知";
-            testBtn.SetBounds(Px(162), Px(7), Px(96), Px(28));
+            testBtn.Text = "試發一則通知";
+            testBtn.SetBounds(Px(162), Px(7), Px(130), Px(28));
             testBtn.Click += delegate
             {
                 var h = TestNotifyRequested;
@@ -108,14 +108,14 @@ namespace ScreenWatch
             };
             bottom.Controls.Add(testBtn);
 
-            lastNotify.SetBounds(Px(266), Px(12), Px(480), Px(22));
+            lastNotify.SetBounds(Px(302), Px(12), Px(450), Px(22));
             lastNotify.ForeColor = Color.FromArgb(95, 95, 95);
             bottom.Controls.Add(lastNotify);
 
             historyLabel.Dock = DockStyle.Top;
             historyLabel.Height = Px(22);
             historyLabel.Padding = new Padding(Px(4), Px(3), 0, 0);
-            historyLabel.Text = "通知紀錄（這裡有出現就代表條件成立了，沒跳通知就是 Windows 擋掉）：";
+            historyLabel.Text = "通知紀錄（最新的在最上面）：";
             historyLabel.ForeColor = Color.FromArgb(95, 95, 95);
 
             history.Dock = DockStyle.Fill;
@@ -258,9 +258,9 @@ namespace ScreenWatch
         public void RefreshList(List<Watch> watches)
         {
             lastNotify.Text = Discord.Configured
-                ? "Discord：已設定" + (Discord.LastResult.Length > 0
-                    ? "　最後一次推播 " + Discord.LastResult : "")
-                : "Discord：未設定（按左邊的按鈕貼上 webhook 網址）";
+                ? "手機通知：已連結 Discord" + (Discord.LastResult.Length > 0
+                    ? "　上次傳送 " + Discord.LastResult : "")
+                : "手機通知：尚未設定";
 
             if (SameItems(watches))
             {

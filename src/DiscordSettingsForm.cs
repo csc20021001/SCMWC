@@ -15,7 +15,7 @@ namespace ScreenWatch
         public DiscordSettingsForm()
         {
             s = Native.SystemScale();
-            Text = "Discord 推播設定";
+            Text = "設定手機通知";
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -24,15 +24,15 @@ namespace ScreenWatch
             Font = new Font("Segoe UI", 9f * (float)s);
 
             var how = new Label();
-            how.Text = "在 Discord 的頻道設定 → 整合 → Webhook 建立一個 webhook，"
-                     + "複製它的網址貼在下面。之後通知就會同時推到那個頻道，"
-                     + "手機上就收得到。";
+            how.Text = "人不在電腦前也想收到通知的話，可以把通知同時送到 Discord。\r\n"
+                     + "在 Discord 的「頻道設定 → 整合 → Webhook」建立一個，"
+                     + "把它的網址複製貼到下面。手機裝了 Discord 就收得到。";
             how.SetBounds(Px(14), Px(12), Px(530), Px(56));
             how.ForeColor = Color.FromArgb(95, 95, 95);
             Controls.Add(how);
 
             var l = new Label();
-            l.Text = "Webhook 網址";
+            l.Text = "Discord Webhook 網址";
             l.SetBounds(Px(14), Px(76), Px(120), Px(24));
             Controls.Add(l);
 
@@ -57,7 +57,7 @@ namespace ScreenWatch
             Controls.Add(result);
 
             var test = new Button();
-            test.Text = "送測試通知";
+            test.Text = "試傳一則";
             test.SetBounds(Px(14), Px(240), Px(120), Px(30));
             test.Click += delegate { SendTest(); };
             Controls.Add(test);
@@ -94,9 +94,9 @@ namespace ScreenWatch
                 Config.DiscordAttachImage = savedAttach;
                 return;
             }
-            Discord.LastResult = "送出中…";
-            Discord.Send("ScreenWatch 測試通知：設定成功，之後有變化會推到這裡。", null);
-            result.Text = "送出中…";
+            Discord.LastResult = "傳送中…";
+            Discord.Send("ScreenWatch：設定成功，之後有變化會傳到這裡。", null);
+            result.Text = "傳送中…";
 
             var t = new Timer();
             t.Interval = 700;
@@ -105,7 +105,7 @@ namespace ScreenWatch
             {
                 tries++;
                 result.Text = "結果：" + Discord.LastResult;
-                if (Discord.LastResult != "送出中…" || tries > 20)
+                if (Discord.LastResult != "傳送中…" || tries > 20)
                 {
                     t.Stop();
                     t.Dispose();

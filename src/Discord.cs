@@ -54,7 +54,7 @@ namespace ScreenWatch
                 }
                 catch (WebException ex)
                 {
-                    LastResult = "失敗：" + Describe(ex);
+                    LastResult = Describe(ex);
                 }
                 catch (Exception ex)
                 {
@@ -66,7 +66,7 @@ namespace ScreenWatch
         static string Describe(WebException ex)
         {
             var r = ex.Response as HttpWebResponse;
-            if (r == null) return ex.Message;
+            if (r == null) return "失敗：連不上網路或 Discord";
             string body = "";
             try
             {
@@ -74,8 +74,12 @@ namespace ScreenWatch
                     body = s.ReadToEnd();
             }
             catch (Exception) { }
-            return string.Format("HTTP {0} {1}", (int)r.StatusCode,
-                body.Length > 200 ? body.Substring(0, 200) : body);
+            if ((int)r.StatusCode == 404) return "失敗：找不到這個 webhook，網址可能貼錯或已被刪除";
+            if ((int)r.StatusCode == 401 || (int)r.StatusCode == 403)
+                return "失敗：這個 webhook 沒有權限，請重新建立一個";
+            if ((int)r.StatusCode == 429) return "失敗：傳太頻繁被 Discord 暫時擋下";
+            return string.Format("失敗（代碼 {0}）{1}", (int)r.StatusCode,
+                body.Length > 120 ? body.Substring(0, 120) : body);
         }
 
         static HttpWebRequest NewRequest(string url)
@@ -105,7 +109,7 @@ namespace ScreenWatch
             req.ContentLength = body.Length;
             using (var s = req.GetRequestStream()) s.Write(body, 0, body.Length);
             using (var resp = (HttpWebResponse)req.GetResponse())
-                return string.Format("已送出 (HTTP {0})", (int)resp.StatusCode);
+                return "成功";
         }
 
         static string PostMultipart(string url, string text, byte[] png)
@@ -133,7 +137,7 @@ namespace ScreenWatch
                 s.Write(post, 0, post.Length);
             }
             using (var resp = (HttpWebResponse)req.GetResponse())
-                return string.Format("已送出含截圖 (HTTP {0})", (int)resp.StatusCode);
+                return "成功（含截圖）";
         }
 
         static string JsonEscape(string s)

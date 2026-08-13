@@ -46,9 +46,9 @@ namespace ScreenWatch
             var menu = new ContextMenuStrip();
             menu.Items.Add("選取想要監視的區域…", null, delegate { AddWatch(); });
             menu.Items.Add("開啟主視窗", null, delegate { ShowMain(); });
-            menu.Items.Add("Discord 推播設定…", null, delegate { EditDiscord(); });
+            menu.Items.Add("設定手機通知…", null, delegate { EditDiscord(); });
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add("還原所有被停放的視窗", null, delegate { UnparkAll(); });
+            menu.Items.Add("把移到背景的視窗放回來", null, delegate { UnparkAll(); });
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add("結束", null, delegate { ExitApp(); });
             tray.ContextMenuStrip = menu;
@@ -163,9 +163,10 @@ namespace ScreenWatch
 
             if (interactive && !okCapture)
             {
-                MessageBox.Show("這個視窗抓不到內容：" + why + "\r\n\r\n"
-                    + "常見原因是它用了不支援 PrintWindow 的繪製方式。\r\n"
-                    + "監視還是會建立，但狀態會顯示為 Blind。", "ScreenWatch");
+                MessageBox.Show("目前看不到這個視窗的內容：" + why + "\r\n\r\n"
+                    + "有些程式（例如全螢幕遊戲、有版權保護的影片）不允許其他程式讀取畫面。\r\n"
+                    + "監視還是會建立，但清單上會顯示「看不到畫面」，也不會通知你。",
+                    "ScreenWatch");
             }
 
             w.Triggered += OnWatchTriggered;
@@ -177,12 +178,8 @@ namespace ScreenWatch
             badges.Add(badge);
             badge.SyncVisibility();
 
-            uint wdpi, mdpi;
-            Native.GetDpis(hwnd, out wdpi, out mdpi);
             tray.ShowBalloonTip(3000, "已開始監視",
-                string.Format("{0}　{1}{2}", w.Title, w.Trig.Describe(),
-                    wdpi != mdpi ? "（目標為 DPI-unaware，已自動校正座標）" : ""),
-                ToolTipIcon.Info);
+                string.Format("{0}　{1}", w.Title, w.Trig.Describe()), ToolTipIcon.Info);
             ShowMain();
         }
 
@@ -363,13 +360,14 @@ namespace ScreenWatch
         void TestNotify()
         {
             if (main != null && !main.IsDisposed)
-                main.AddHistory("測試通知（如果右下角沒跳出來，就是 Windows 擋掉了）");
+                main.AddHistory("通知檢查：已送出。如果右下角沒有跳出來，"
+                    + "請到 Windows 設定裡允許 ScreenWatch 顯示通知");
             try { SystemSounds.Asterisk.Play(); }
             catch (Exception) { }
-            tray.ShowBalloonTip(6000, "ScreenWatch 測試通知",
-                "如果你看得到這則，通知管道是通的。", ToolTipIcon.Info);
+            tray.ShowBalloonTip(6000, "ScreenWatch",
+                "通知正常。你看得到這則，就表示之後有變化時也收得到。", ToolTipIcon.Info);
             if (Discord.Configured)
-                Discord.Send("ScreenWatch 測試通知：通知管道是通的。", null);
+                Discord.Send("ScreenWatch：通知正常，之後有變化會傳到這裡。", null);
         }
 
         void OnMinimizeStart(IntPtr hook, uint ev, IntPtr hwnd,
@@ -384,9 +382,10 @@ namespace ScreenWatch
                 Watch w = snapshot[i];
                 if (w.ParkBehaviour == ParkResult.StopsRendering) return;
                 w.Park();
-                tray.ShowBalloonTip(5000, "已改為背景監視",
-                    "最小化的視窗無法抓取，已把它停到螢幕外繼續監視。"
-                    + "要拿回來請用選單的「還原所有被停放的視窗」。", ToolTipIcon.Info);
+                tray.ShowBalloonTip(5000, "已移到背景繼續監視",
+                    "視窗一旦最小化就看不到內容了，所以幫你移到背景，監視不會中斷。"
+                    + "要拿回來的話，在系統匣圖示上按右鍵選「把移到背景的視窗放回來」。",
+                    ToolTipIcon.Info);
                 return;
             }
         }

@@ -25,7 +25,7 @@ namespace ScreenWatch
             switch (s)
             {
                 case WatchStatus.Blind: return "看不到畫面";
-                case WatchStatus.Parked: return "已收到背景";
+                case WatchStatus.Parked: return "在背景監視";
                 case WatchStatus.Dead: return "視窗已關閉";
                 default: return "監視中";
             }
@@ -211,7 +211,8 @@ namespace ScreenWatch
             if (!s.IsUsable)
             {
                 Status = WatchStatus.Blind;
-                StatusDetail = s.Unpainted >= 0.5 ? "目標沒有繪製任何內容" : "抓到的是黑畫面";
+                StatusDetail = s.Unpainted >= 0.5
+                    ? "這個視窗沒有畫出任何東西" : "抓到的是一片黑";
                 BlindSeconds += dt;
                 prevSig = null;          // 不要拿無效畫面去比較
                 return true;
@@ -267,7 +268,7 @@ namespace ScreenWatch
             {
                 ParkBehaviour = ParkResult.StopsRendering;
                 Unpark();
-                StatusDetail = "這個程式隱藏時會停止繪製，已自動放回螢幕上";
+                StatusDetail = "這個程式一藏起來就停止畫面更新，已自動放回螢幕上";
             }
             return true;
         }
