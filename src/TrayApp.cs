@@ -28,7 +28,9 @@ namespace ScreenWatch
             public bool IsProblem;
         }
         readonly WinEventProc minimizeProc;      // 一定要用欄位保存，不然會被 GC 回收
+        readonly WinEventProc moveProc;
         IntPtr minimizeHook;
+        readonly List<IntPtr> moveHooks = new List<IntPtr>();
         MainForm main;
         DateTime lastTickUtc = DateTime.UtcNow;
 
@@ -63,6 +65,8 @@ namespace ScreenWatch
             sampler.IsBackground = true;
             sampler.Name = "ScreenWatch sampler";
             sampler.Start();
+
+            moveProc = OnTargetMoved;
 
             // 攔下最小化：不叫使用者別按，而是改成停到螢幕外繼續監視。
             minimizeProc = OnMinimizeStart;
@@ -177,6 +181,15 @@ namespace ScreenWatch
             badge.CloseClicked += delegate(Badge b) { RemoveWatch(b.Target); };
             badges.Add(badge);
             badge.SyncVisibility();
+
+            // 只監聽這個目標所屬行程的位置變化。掛全域的話，滑鼠游標的
+            // 移動事件會把訊息佇列灌爆（游標也是一種 accessible object）。
+            uint pid;
+            uint tid = Native.GetWindowThreadProcessId(hwnd, out pid);
+            IntPtr mh = Native.SetWinEventHook(
+                Native.EVENT_OBJECT_LOCATIONCHANGE, Native.EVENT_OBJECT_LOCATIONCHANGE,
+                IntPtr.Zero, moveProc, pid, tid, Native.WINEVENT_OUTOFCONTEXT);
+            if (mh != IntPtr.Zero) moveHooks.Add(mh);
 
             tray.ShowBalloonTip(3000, "已開始監視",
                 string.Format("{0}　{1}", w.Title, w.Trig.Describe()), ToolTipIcon.Info);
@@ -370,6 +383,21 @@ namespace ScreenWatch
                 Discord.Send("ScreenWatch：通知正常，之後有變化會傳到這裡。", null);
         }
 
+        /// <summary>目標視窗一動，浮動關閉鈕就立刻跟上，不用等下一次定時更新。</summary>
+        void OnTargetMoved(IntPtr hook, uint ev, IntPtr hwnd,
+                           int idObject, int idChild, uint thread, uint time)
+        {
+            if (idObject != Native.OBJID_WINDOW) return;
+            for (int i = 0; i < badges.Count; i++)
+            {
+                Badge b = badges[i];
+                if (b.Target == null || b.Target.Hwnd != hwnd) continue;
+                try { b.SyncVisibility(); }
+                catch (Exception) { }
+                return;
+            }
+        }
+
         void OnMinimizeStart(IntPtr hook, uint ev, IntPtr hwnd,
                              int idObject, int idChild, uint thread, uint time)
         {
@@ -446,6 +474,8 @@ namespace ScreenWatch
             Native.EndHighResolutionTimer();
             if (sampler != null && sampler.IsAlive) sampler.Join(500);
             if (minimizeHook != IntPtr.Zero) Native.UnhookWinEvent(minimizeHook);
+            for (int i = 0; i < moveHooks.Count; i++) Native.UnhookWinEvent(moveHooks[i]);
+            moveHooks.Clear();
             UnparkAll();
             for (int i = 0; i < badges.Count; i++) badges[i].Dispose();
             badges.Clear();

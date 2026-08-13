@@ -170,6 +170,20 @@ namespace ScreenWatch
                 Math.Max(1, (int)(RegionInWindow.Height * sy)));
         }
 
+        /// <summary>
+        /// 重算被監視區域在螢幕上的位置，不做抓取。
+        ///
+        /// 浮動關閉鈕要用這個：如果等取樣才更新位置，檢查頻率設成每 3 秒的話，
+        /// 拖動視窗後叉叉最久會慢 3 秒才跟上。這裡只做一次 GetWindowRect，很便宜。
+        /// </summary>
+        public Rectangle RefreshScreenRegion()
+        {
+            if (!Native.IsWindow(Hwnd)) return ScreenRegion;
+            RECT now;
+            if (Native.GetWindowRect(Hwnd, out now)) UpdateScreenRegion(now);
+            return ScreenRegion;
+        }
+
         void Calibrate(RECT now)
         {
             Rectangle bb = cap.PaintedBounds();

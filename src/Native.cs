@@ -52,6 +52,8 @@ namespace ScreenWatch
         public const uint SWP_FRAMECHANGED = 0x0020;
         public const int OFFSCREEN_XY = -32000;
         public const uint EVENT_SYSTEM_MINIMIZESTART = 0x0016;
+        public const uint EVENT_OBJECT_LOCATIONCHANGE = 0x800B;
+        public const int OBJID_WINDOW = 0;
         public const uint WINEVENT_OUTOFCONTEXT = 0x0000;
         public const uint WINEVENT_SKIPOWNPROCESS = 0x0002;
         public const int DIB_RGB_COLORS = 0;

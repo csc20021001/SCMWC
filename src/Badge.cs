@@ -98,7 +98,8 @@ namespace ScreenWatch
         public void Reposition()
         {
             if (Target == null) return;
-            Rectangle r = Target.ScreenRegion;
+            // 自己重算，不要用上一次取樣時記下的位置
+            Rectangle r = Target.RefreshScreenRegion();
             Rectangle virt = SystemInformation.VirtualScreen;
             int margin = Math.Max(2, size / 6);
 
