@@ -11,5 +11,5 @@ selftest-shot.png
 *.user
 *.suo
 
-# wrangler ªº¥»¾÷§Ö¨ú¡G§t±b¸¹ ID »P¹q¤l¶l¥ó¡A¤£¸Ó¶iª©±±
+# wrangler çš„æœ¬æ©Ÿå¿«å–ï¼šè£¡é¢æœ‰ Cloudflare å¸³è™Ÿ ID å’Œå¸³è™Ÿçš„é›»å­éƒµä»¶ï¼Œä¸è©²é€²ç‰ˆæ§
 .wrangler/
