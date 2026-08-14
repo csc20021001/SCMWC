@@ -229,6 +229,20 @@ namespace ScreenWatch
         int activeSamples;
 
         /// <summary>
+        /// 判斷「這塊畫面有沒有在動」用的門檻，比「算不算一次值得通知的變化」低很多。
+        ///
+        /// 兩者混用會出事：一塊很大的區域裡如果只有角落幾個數字在跳，
+        /// 變化量會被整塊面積稀釋到通知門檻以下，程式就會以為它從頭到尾
+        /// 都沒動過，於是「停下來了」永遠不成立。
+        /// 實測一個 775x76 的狀態列，22 秒內只有 2 次超過通知門檻，
+        /// 但它其實一直在更新。
+        /// </summary>
+        public double ActivityThreshold
+        {
+            get { return Math.Max(0.2, ChangeThreshold * 0.25); }
+        }
+
+        /// <summary>
         /// 「本來一直在動，停下來了」。
         ///
         /// 給那些根本不是進度條的進度指示用：純文字的百分比、轉圈圈、
@@ -240,7 +254,7 @@ namespace ScreenWatch
         /// </summary>
         string EvaluateQuiet(double delta)
         {
-            if (delta > ChangeThreshold)
+            if (delta > ActivityThreshold)
             {
                 lastActiveUtc = DateTime.UtcNow;
                 if (activeSamples < 1000) activeSamples++;

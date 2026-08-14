@@ -231,8 +231,8 @@ namespace ScreenWatch
                 Native.TitleOf(hwnd), wr.Width, wr.Height));
             sb.AppendLine("每種樣式各跑 22 秒（頁面循環約 17 秒）");
             sb.AppendLine();
-            sb.AppendLine("樣式                     用的條件         觸發  預期  結果");
-            sb.AppendLine(new string('-', 74));
+            sb.AppendLine("樣式                     用的條件         觸發  預期  最大變化  有在動次數  最長安靜  結果");
+            sb.AppendLine(new string('-', 96));
 
             // 區域用視窗尺寸的比例表示，換算成螢幕座標
             var cases = new object[][] {
@@ -256,6 +256,10 @@ namespace ScreenWatch
                 bool expectFires = (bool)c[6];
 
                 int fires = 0;
+                double maxDelta = 0;
+                int overThreshold = 0;
+                double longestQuiet = 0;
+                DateTime quietStart = DateTime.MinValue;
                 using (var w = new Watch(hwnd, region))
                 {
                     w.Trig.Kind = kind;
@@ -270,16 +274,33 @@ namespace ScreenWatch
                         if (bmp != null) bmp.Dispose();
                     };
                     DateTime t0 = DateTime.UtcNow;
+                    int lastCount = 0;
                     while ((DateTime.UtcNow - t0).TotalSeconds < 22)
                     {
                         w.Tick(0, false);
+                        if (w.SampleCount != lastCount)
+                        {
+                            lastCount = w.SampleCount;
+                            if (w.LastDelta > maxDelta) maxDelta = w.LastDelta;
+                            if (w.LastDelta > w.Trig.ActivityThreshold)
+                            {
+                                overThreshold++;
+                                quietStart = DateTime.UtcNow;   // 動了，安靜重新計時
+                            }
+                            else if (quietStart != DateTime.MinValue)
+                            {
+                                double q = (DateTime.UtcNow - quietStart).TotalSeconds;
+                                if (q > longestQuiet) longestQuiet = q;
+                            }
+                        }
                         System.Threading.Thread.Sleep(
                             (int)Math.Max(1, Math.Min(15, w.MsUntilDue)));
                     }
                 }
                 bool pass = expectFires ? fires > 0 : fires == 0;
-                sb.AppendLine(string.Format("{0,-22} {1,-16} {2,4}  {3,-4}  {4}",
-                    name, kind, fires, expectFires ? "有" : "0", pass ? "PASS" : "FAIL"));
+                sb.AppendLine(string.Format("{0,-22} {1,-16} {2,4}  {3,-4}  {4,8:0.00}  {5,10}  {6,7:0.0}s  {7}",
+                    name, kind, fires, expectFires ? "有" : "0",
+                    maxDelta, overThreshold, longestQuiet, pass ? "PASS" : "FAIL"));
             }
             Native.EndHighResolutionTimer();
             Write("stylestest.log", sb);
