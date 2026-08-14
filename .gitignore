@@ -10,3 +10,6 @@ selftest-shot.png
 .vs/
 *.user
 *.suo
+
+# wrangler 的本機快取：含帳號 ID 與電子郵件，不該進版控
+.wrangler/
