@@ -6,9 +6,10 @@ namespace ScreenWatch
     public enum TriggerKind
     {
         AnyChange,      // 畫面只要有變化就通知
-        Full,           // 跑完了才通知
+        Full,           // 跑完了才通知（看進度條）
         ColorChanged,   // 顏色變了就通知
-        PercentReached  // 跑到指定進度就通知
+        PercentReached, // 跑到指定進度就通知
+        WentQuiet       // 本來一直在動，停下來就通知
     }
 
     /// <summary>
@@ -23,6 +24,7 @@ namespace ScreenWatch
         public double ChangeThreshold = 1.0;    // AnyChange 用
         public int PercentTarget = 50;          // PercentReached 用
         public double ColorTolerance = 45;      // ColorChanged 用（RGB 距離）
+        public double QuietSeconds = 10;        // WentQuiet 用：安靜多久算跑完
 
         /// <summary>邊緣觸發的條件不該套用冷卻時間 —— 錯過就是永久錯過。</summary>
         public bool IsEdgeTriggered
@@ -59,6 +61,8 @@ namespace ScreenWatch
                 case TriggerKind.ColorChanged: return "顏色變了就通知";
                 case TriggerKind.PercentReached:
                     return string.Format("跑到 {0}% 就通知", PercentTarget);
+                case TriggerKind.WentQuiet:
+                    return string.Format("停止變化 {0:0} 秒就通知", QuietSeconds);
                 default: return "有變化就通知";
             }
         }
@@ -210,11 +214,49 @@ namespace ScreenWatch
                 case TriggerKind.ColorChanged:
                     return EvaluateColor(cap, region);
 
+                case TriggerKind.WentQuiet:
+                    return EvaluateQuiet(delta);
+
                 case TriggerKind.Full:
                 case TriggerKind.PercentReached:
                     return EvaluateProgress(cap, region, delta);
             }
             return null;
+        }
+
+        // WentQuiet 的狀態
+        DateTime lastActiveUtc = DateTime.MinValue;
+        int activeSamples;
+
+        /// <summary>
+        /// 「本來一直在動，停下來了」。
+        ///
+        /// 給那些根本不是進度條的進度指示用：純文字的百分比、轉圈圈、
+        /// 一直往下捲的 log。這些沒有可以量的幾何形狀，但它們有一個共同點 ——
+        /// 事情做完的時候，那塊畫面就不動了。
+        ///
+        /// 必須先看過它真的在動（activeSamples），否則一塊本來就靜止的畫面
+        /// 會在剛建立監視時就誤報「跑完了」。
+        /// </summary>
+        string EvaluateQuiet(double delta)
+        {
+            if (delta > ChangeThreshold)
+            {
+                lastActiveUtc = DateTime.UtcNow;
+                if (activeSamples < 1000) activeSamples++;
+                armed = true;
+                return null;
+            }
+
+            if (!armed) return null;
+            if (activeSamples < 3) return null;          // 還沒看過它動，不算數
+            if (lastActiveUtc == DateTime.MinValue) return null;
+
+            double quiet = (DateTime.UtcNow - lastActiveUtc).TotalSeconds;
+            if (quiet < QuietSeconds) return null;
+
+            armed = false;
+            return string.Format("停止變化超過 {0:0} 秒，看起來是跑完了", QuietSeconds);
         }
 
         string EvaluateColor(Capturer cap, Rectangle region)

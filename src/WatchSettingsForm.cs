@@ -17,6 +17,9 @@ namespace ScreenWatch
         readonly RadioButton full = new RadioButton();
         readonly RadioButton percent = new RadioButton();
         readonly RadioButton colorChanged = new RadioButton();
+        readonly RadioButton wentQuiet = new RadioButton();
+        readonly ComboBox quietFor = new ComboBox();
+        readonly Label quietLabel = new Label();
         readonly NumericUpDown percentValue = new NumericUpDown();
         readonly ComboBox sensitivity = new ComboBox();
         readonly ComboBox colorSensitivity = new ComboBox();
@@ -30,6 +33,7 @@ namespace ScreenWatch
         // 靈敏度 → 雜訊底線的倍數。倍數越小越靈敏。
         static readonly double[] SensitivityMultiplier = new double[] { 1.5, 3.0, 8.0 };
         static readonly double[] ColorTolerances = new double[] { 25, 45, 90 };
+        static readonly double[] QuietOptions = new double[] { 5, 10, 30, 60 };
         // 實測 PrintWindow 一次約 20~24ms（讀像素和分析加起來不到 2ms），
         // 所以硬體上限大約 40~50 Hz。0.05 秒已經接近極限，留一點餘裕。
         static readonly double[] RateSeconds = new double[] { 0.05, 0.2, 1.0, 3.0 };
@@ -42,7 +46,7 @@ namespace ScreenWatch
             MaximizeBox = false;
             MinimizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(Px(560), Px(516));
+            ClientSize = new Size(Px(560), Px(590));
             Font = new Font("Segoe UI", 9f * (float)s);
 
             int y = Px(14);
@@ -63,6 +67,15 @@ namespace ScreenWatch
 
             colorChanged.Text = "顏色變了就通知我（例如紅色變成綠色）";
             Place(colorChanged, ref y);
+
+            wentQuiet.Text = "本來一直在動，停下來就通知我";
+            Place(wentQuiet, ref y);
+            quietFor.DropDownStyle = ComboBoxStyle.DropDownList;
+            quietFor.Items.AddRange(new object[] {
+                "停 5 秒就算跑完", "停 10 秒就算跑完",
+                "停 30 秒就算跑完", "停 1 分鐘才算跑完" });
+            quietLabel.Text = "　　要安靜多久才算跑完";
+            AddRow(quietLabel, quietFor, Px(190), ref y);
 
             y += Px(8);
             AddHeader("細節（用不到就不用動）", ref y);
@@ -95,9 +108,11 @@ namespace ScreenWatch
             Place(discord, ref y);
 
             y += Px(4);
-            note.Text = "「跑完了」和「跑到指定進度」會自己在你框的範圍裡找出那條進度條，"
-                      + "所以直接框整個視窗也可以。找不到的話會跳出來告訴你，不會安靜地不通知。\r\n"
-                      + "就算進度條跑滿之後立刻歸零重跑，也一樣抓得到。\r\n"
+            note.Text = "「跑完了」和「跑到指定進度」是看畫面上那條進度條，會自己在你框的範圍裡"
+                      + "找出來，所以直接框整個視窗也可以。找不到的話會跳出來告訴你。\r\n"
+                      + "如果那個進度不是一條長條，而是像「上傳中 22%」這樣的純文字、"
+                      + "或是一直轉的圈圈、一直捲的訊息，請改用「停下來就通知我」——"
+                      + "它不看形狀，只看那塊畫面有沒有安靜下來。\r\n"
                       + "看得越勤，越不會漏掉一閃而過的畫面，但被監視的那個程式會稍微變慢。";
             note.ForeColor = Color.FromArgb(95, 95, 95);
             note.SetBounds(Px(14), y, Px(530), Px(100));
@@ -124,15 +139,18 @@ namespace ScreenWatch
                 case TriggerKind.Full: full.Checked = true; break;
                 case TriggerKind.ColorChanged: colorChanged.Checked = true; break;
                 case TriggerKind.PercentReached: percent.Checked = true; break;
+                case TriggerKind.WentQuiet: wentQuiet.Checked = true; break;
                 default: anyChange.Checked = true; break;
             }
             colorSensitivity.SelectedIndex = IndexOfClosest(ColorTolerances, w.Trig.ColorTolerance);
+            quietFor.SelectedIndex = IndexOfClosest(QuietOptions, w.Trig.QuietSeconds);
 
             EventHandler sync = delegate { SyncEnabled(); };
             anyChange.CheckedChanged += sync;
             full.CheckedChanged += sync;
             colorChanged.CheckedChanged += sync;
             percent.CheckedChanged += sync;
+            wentQuiet.CheckedChanged += sync;
             SyncEnabled();
         }
 
@@ -186,11 +204,14 @@ namespace ScreenWatch
 
         void SyncEnabled()
         {
-            sensitivity.Enabled = anyChange.Checked;
-            sensitivityLabel.Enabled = anyChange.Checked;
+            // 「安靜下來」也要靠變化量判斷有沒有在動，所以靈敏度對它一樣有意義
+            sensitivity.Enabled = anyChange.Checked || wentQuiet.Checked;
+            sensitivityLabel.Enabled = sensitivity.Enabled;
             colorSensitivity.Enabled = colorChanged.Checked;
             colorLabel.Enabled = colorChanged.Checked;
             percentValue.Enabled = percent.Checked;
+            quietFor.Enabled = wentQuiet.Checked;
+            quietLabel.Enabled = wentQuiet.Checked;
 
             // 進度類的條件最怕「滿了一瞬間就歸零」，所以預設看快一點。
             if (full.Checked || percent.Checked) rate.SelectedIndex = 0;
@@ -201,6 +222,7 @@ namespace ScreenWatch
             if (full.Checked) w.Trig.Kind = TriggerKind.Full;
             else if (colorChanged.Checked) w.Trig.Kind = TriggerKind.ColorChanged;
             else if (percent.Checked) w.Trig.Kind = TriggerKind.PercentReached;
+            else if (wentQuiet.Checked) w.Trig.Kind = TriggerKind.WentQuiet;
             else w.Trig.Kind = TriggerKind.AnyChange;
 
             // 靈敏度是相對於建立監視時量到的雜訊底線，不是絕對數字。
@@ -208,6 +230,7 @@ namespace ScreenWatch
             w.Trig.ChangeThreshold = Math.Max(
                 0.8, baseNoise * SensitivityMultiplier[sensitivity.SelectedIndex]);
             w.Trig.ColorTolerance = ColorTolerances[colorSensitivity.SelectedIndex];
+            w.Trig.QuietSeconds = QuietOptions[quietFor.SelectedIndex];
             w.Trig.PercentTarget = (int)percentValue.Value;
             w.IntervalSeconds = RateSeconds[rate.SelectedIndex];
             w.DiscordEnabled = discord.Checked;

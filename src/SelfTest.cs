@@ -209,6 +209,68 @@ namespace ScreenWatch
         }
 
         /// <summary>
+        /// 驗證「停下來就通知」。這是給那些不是長條的進度用的 ——
+        /// 純文字百分比、轉圈圈、一直捲的 log。
+        /// 用法：ScreenWatch.exe --quiettest "視窗標題片段"
+        /// </summary>
+        public static void QuietTest(string titlePart)
+        {
+            var sb = new StringBuilder();
+            Native.MakeDpiAware();
+            Native.BeginHighResolutionTimer();
+            IntPtr hwnd = FindWindow(titlePart);
+            if (hwnd == IntPtr.Zero)
+            {
+                sb.AppendLine("找不到視窗：" + titlePart);
+                Write("quiettest.log", sb);
+                return;
+            }
+            RECT r;
+            Native.GetWindowRect(hwnd, out r);
+            sb.AppendLine("目標 : " + Native.TitleOf(hwnd));
+            sb.AppendLine("條件 : 停止變化 3 秒就通知（demo 跑完會停在 Completed 五秒）");
+            sb.AppendLine();
+
+            int fires = 0;
+            var when = new List<string>();
+            using (var w = new Watch(hwnd, new Rectangle(r.Left, r.Top, r.Width, r.Height)))
+            {
+                w.Trig.Kind = TriggerKind.WentQuiet;
+                w.Trig.QuietSeconds = 3;
+                w.Trig.ChangeThreshold = 1.0;
+                w.IntervalSeconds = 0.2;
+                w.NotifyCooldownSeconds = 0;
+                DateTime t0 = DateTime.UtcNow;
+                w.Triggered += delegate(Watch _, string reason, Bitmap bmp)
+                {
+                    fires++;
+                    when.Add(string.Format("  {0,5:0.0}s  {1}",
+                        (DateTime.UtcNow - t0).TotalSeconds, reason));
+                    if (bmp != null) bmp.Dispose();
+                };
+
+                // 前 6 秒特別記錄：這段 demo 一定在動，不應該有任何通知
+                int firesInBusyPhase = 0;
+                while ((DateTime.UtcNow - t0).TotalSeconds < 45)
+                {
+                    w.Tick(0, false);
+                    if ((DateTime.UtcNow - t0).TotalSeconds < 6) firesInBusyPhase = fires;
+                    double wait = w.MsUntilDue;
+                    System.Threading.Thread.Sleep((int)Math.Max(1, Math.Min(15, wait)));
+                }
+                sb.AppendLine(string.Format("45 秒內觸發 {0} 次（demo 循環 17 秒，約 2~3 輪）", fires));
+                sb.AppendLine(string.Format("前 6 秒（畫面持續在動）觸發 {0} 次，預期 0 次",
+                    firesInBusyPhase));
+                sb.AppendLine();
+                foreach (string s in when) sb.AppendLine(s);
+                sb.AppendLine();
+                sb.AppendLine("結論 : " + (fires >= 2 && firesInBusyPhase == 0 ? "PASS" : "FAIL"));
+            }
+            Native.EndHighResolutionTimer();
+            Write("quiettest.log", sb);
+        }
+
+        /// <summary>
         /// 逐筆記錄每次取樣量到的進度，用來看清楚「為什麼沒觸發」。
         /// 條件跟產品預設完全一樣：整個視窗、跑完了才通知、每秒 20 次。
         /// 用法：ScreenWatch.exe --trace "視窗標題片段"

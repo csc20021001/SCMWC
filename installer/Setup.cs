@@ -17,7 +17,7 @@ namespace ScreenWatchSetup
     public static class Setup
     {
         public const string AppName = "ScreenWatch";
-        public const string Version = "0.1.0";
+        public const string Version = "0.1.1";
         const string UninstallKey =
             @"Software\Microsoft\Windows\CurrentVersion\Uninstall\ScreenWatch";
 

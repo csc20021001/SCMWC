@@ -616,6 +616,12 @@ namespace ScreenWatch
                 SelfTest.BarTest(args[1]);
                 return;
             }
+            if (args.Length >= 2 && args[0] == "--quiettest")
+            {
+                Native.MakeDpiAware();
+                SelfTest.QuietTest(args[1]);
+                return;
+            }
             if (args.Length >= 2 && args[0] == "--misstest")
             {
                 Native.MakeDpiAware();
