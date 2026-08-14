@@ -209,6 +209,83 @@ namespace ScreenWatch
         }
 
         /// <summary>
+        /// 對五種不同樣式的進度指示，各自用建議的條件跑一次，確認建議是對的。
+        /// 目標是 demo\progress-styles.html。
+        /// 用法：ScreenWatch.exe --stylestest "Progress Styles"
+        /// </summary>
+        public static void StylesTest(string titlePart)
+        {
+            var sb = new StringBuilder();
+            Native.MakeDpiAware();
+            Native.BeginHighResolutionTimer();
+            IntPtr hwnd = FindWindow(titlePart);
+            if (hwnd == IntPtr.Zero)
+            {
+                sb.AppendLine("找不到視窗：" + titlePart);
+                Write("stylestest.log", sb);
+                return;
+            }
+            RECT wr;
+            Native.GetWindowRect(hwnd, out wr);
+            sb.AppendLine(string.Format("目標 : {0}  {1}x{2}",
+                Native.TitleOf(hwnd), wr.Width, wr.Height));
+            sb.AppendLine("每種樣式各跑 22 秒（頁面循環約 17 秒）");
+            sb.AppendLine();
+            sb.AppendLine("樣式                     用的條件         觸發  預期  結果");
+            sb.AppendLine(new string('-', 74));
+
+            // 區域用視窗尺寸的比例表示，換算成螢幕座標
+            var cases = new object[][] {
+                new object[]{ "A 典型長條進度條",   TriggerKind.Full,         0.09,0.118,0.83,0.042, true  },
+                new object[]{ "B 純文字百分比",     TriggerKind.Full,         0.09,0.281,0.83,0.068, false },
+                new object[]{ "B 純文字百分比",     TriggerKind.WentQuiet,    0.09,0.281,0.83,0.068, true  },
+                new object[]{ "C 只有轉圈圈",       TriggerKind.WentQuiet,    0.08,0.437,0.09,0.052, true  },
+                new object[]{ "D 一直往下捲的訊息", TriggerKind.WentQuiet,    0.09,0.578,0.83,0.118, true  },
+                new object[]{ "E 完成時整塊變色",   TriggerKind.ColorChanged, 0.09,0.792,0.83,0.056, true  },
+            };
+
+            foreach (object[] c in cases)
+            {
+                string name = (string)c[0];
+                var kind = (TriggerKind)c[1];
+                var region = new Rectangle(
+                    wr.Left + (int)(wr.Width * (double)c[2]),
+                    wr.Top + (int)(wr.Height * (double)c[3]),
+                    (int)(wr.Width * (double)c[4]),
+                    (int)(wr.Height * (double)c[5]));
+                bool expectFires = (bool)c[6];
+
+                int fires = 0;
+                using (var w = new Watch(hwnd, region))
+                {
+                    w.Trig.Kind = kind;
+                    w.Trig.ChangeThreshold = 1.0;
+                    w.Trig.QuietSeconds = 3;
+                    w.Trig.ColorTolerance = 45;
+                    w.IntervalSeconds = 0.2;
+                    w.NotifyCooldownSeconds = 0;
+                    w.Triggered += delegate(Watch _, string reason, Bitmap bmp)
+                    {
+                        fires++;
+                        if (bmp != null) bmp.Dispose();
+                    };
+                    DateTime t0 = DateTime.UtcNow;
+                    while ((DateTime.UtcNow - t0).TotalSeconds < 22)
+                    {
+                        w.Tick(0, false);
+                        System.Threading.Thread.Sleep(
+                            (int)Math.Max(1, Math.Min(15, w.MsUntilDue)));
+                    }
+                }
+                bool pass = expectFires ? fires > 0 : fires == 0;
+                sb.AppendLine(string.Format("{0,-22} {1,-16} {2,4}  {3,-4}  {4}",
+                    name, kind, fires, expectFires ? "有" : "0", pass ? "PASS" : "FAIL"));
+            }
+            Native.EndHighResolutionTimer();
+            Write("stylestest.log", sb);
+        }
+
+        /// <summary>
         /// 驗證「停下來就通知」。這是給那些不是長條的進度用的 ——
         /// 純文字百分比、轉圈圈、一直捲的 log。
         /// 用法：ScreenWatch.exe --quiettest "視窗標題片段"

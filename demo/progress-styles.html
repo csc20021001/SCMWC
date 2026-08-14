@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>Progress Styles — ScreenWatch 範例產生器</title>
+<style>
+  :root{ --bg:#f5f5f7; --card:#fff; --line:#dcdce2; --ink:#1b1b1f; --dim:#63636e; }
+  *{box-sizing:border-box}
+  body{margin:0;padding:28px;background:var(--bg);color:var(--ink);
+       font:15px/1.6 "Segoe UI","Noto Sans TC",system-ui,sans-serif}
+  .row{display:flex;flex-direction:column;gap:18px;max-width:560px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+  .tag{font:600 11px/1 ui-monospace,Consolas,monospace;color:#fff;background:#5b5b66;
+       padding:4px 8px;border-radius:4px;display:inline-block;margin-bottom:12px}
+
+  /* A. 典型的長條進度條 */
+  .bar{height:22px;background:#e6e6ec;border-radius:4px;overflow:hidden}
+  .bar > i{display:block;height:100%;background:#2f7d32;width:0}
+
+  /* B. 純文字百分比：只有一行字加數字，沒有任何可以量的形狀 */
+  .info{background:#e7f3fe;border:1px solid #b6dcfb;border-radius:8px;
+        padding:14px 18px;font-size:16px}
+
+  /* C. 轉圈圈 */
+  .spin{width:34px;height:34px;border-radius:50%;border:4px solid #dcdce2;
+        border-top-color:#2f7d32;animation:sp .9s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  /* D. 一直往下捲的訊息 */
+  .log{height:96px;overflow:hidden;background:#1b1b1f;color:#cfcfd6;border-radius:6px;
+       padding:10px 12px;font:12.5px/1.55 ui-monospace,Consolas,monospace}
+
+  /* E. 狀態色塊 */
+  .badge{padding:12px 16px;border-radius:8px;font-weight:700;text-align:center;
+         background:#c0392b;color:#fff}
+</style>
+</head>
+<body>
+<div class="row">
+
+  <div class="card">
+    <span class="tag">A · 典型長條進度條</span>
+    <div class="bar"><i id="barfill"></i></div>
+    <div style="margin-top:8px;color:var(--dim);font-size:13px">Exporting frames…</div>
+  </div>
+
+  <div class="card">
+    <span class="tag">B · 純文字百分比</span>
+    <div class="info" id="textpct">Uploading dataset to the server 0%.</div>
+  </div>
+
+  <div class="card">
+    <span class="tag">C · 只有轉圈圈，沒有數字</span>
+    <div style="display:flex;align-items:center;gap:14px">
+      <div class="spin"></div>
+      <span style="color:var(--dim)">Processing, please wait…</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <span class="tag">D · 一直往下捲的訊息</span>
+    <div class="log" id="log"></div>
+  </div>
+
+  <div class="card">
+    <span class="tag">E · 完成時整塊變色</span>
+    <div class="badge" id="badge">RUNNING</div>
+  </div>
+
+</div>
+
+<script>
+  // 一輪 = 12 秒推進到 100%，停 4 秒，再重來。
+  // 五種樣式共用同一個進度值，方便對照「同一件事的不同呈現方式」。
+  var n = 0, holding = 0;
+  var lines = ['loading manifest', 'resolving deps', 'fetch chunk', 'decode',
+               'write shard', 'verify hash', 'flush buffers', 'commit'];
+  var log = document.getElementById('log');
+
+  setInterval(function () {
+    if (n >= 100) {
+      holding++;
+      if (holding > 40) { n = 0; holding = 0; }
+    } else { n++; }
+
+    var done = n >= 100;
+    document.getElementById('barfill').style.width = n + '%';
+    document.getElementById('textpct').textContent =
+      done ? 'Finished uploading dataset to the server.'
+           : 'Uploading dataset to the server ' + n + '%.';
+    var b = document.getElementById('badge');
+    b.textContent = done ? 'COMPLETED' : 'RUNNING';
+    b.style.background = done ? '#2f7d32' : '#c0392b';
+
+    if (!done) {
+      var d = document.createElement('div');
+      d.textContent = '[' + String(n).padStart(3, '0') + '] ' +
+                      lines[n % lines.length] + ' ok';
+      log.appendChild(d);
+      while (log.childNodes.length > 20) log.removeChild(log.firstChild);
+      log.scrollTop = log.scrollHeight;
+    }
+    document.querySelector('.spin').style.animationPlayState = done ? 'paused' : 'running';
+  }, 120);
+</script>
+</body>
+</html>

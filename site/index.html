@@ -140,6 +140,56 @@
     </div>
   </section>
 
+  <section id="which">
+    <h2>你要盯的進度長什麼樣？</h2>
+    <p style="margin:-8px 0 24px;color:var(--dim);font-size:15px;max-width:64ch">
+      「進度」在不同程式裡長得完全不一樣。下面五種是最常見的形式，
+      每一種適合的條件不同。選對了才不會等半天沒反應。
+    </p>
+
+    <img class="shot" style="margin:0 0 26px" src="progress-styles.png"
+         width="775" height="1125"
+         alt="五種常見的進度呈現方式：長條進度條、純文字百分比、轉圈圈、往下捲的訊息、完成時變色的狀態方塊">
+
+    <table>
+      <tr>
+        <td>A · 典型的長條進度條</td>
+        <td><b style="color:var(--text)">跑完了才通知我</b><br>
+          有明確的填滿／未填滿分界，程式量得出百分比。
+          框選時框整個視窗也可以，它會自己找出那條進度條。</td>
+      </tr>
+      <tr>
+        <td>B · 純文字百分比<br>
+          <span style="color:var(--faint);font-size:13px">「Uploading … 22%」</span></td>
+        <td><b style="color:var(--text)">停下來就通知我</b><br>
+          這種沒有任何可以量的形狀，「跑完了才通知」對它<b>完全無效</b>
+          —— 實測 22 秒內觸發 0 次。改用「停下來」則正常運作。</td>
+      </tr>
+      <tr>
+        <td>C · 只有轉圈圈，沒有數字</td>
+        <td><b style="color:var(--text)">停下來就通知我</b><br>
+          圈圈停下來的那一刻就是做完的時候。</td>
+      </tr>
+      <tr>
+        <td>D · 一直往下捲的訊息</td>
+        <td><b style="color:var(--text)">停下來就通知我</b><br>
+          編譯、部署、備份的輸出畫面都屬於這一類。
+          建議把「要安靜多久」設長一點（30 秒），避免中途卡頓被誤判成跑完。</td>
+      </tr>
+      <tr>
+        <td>E · 完成時整塊變色</td>
+        <td><b style="color:var(--text)">顏色變了就通知我</b><br>
+          紅變綠、灰變藍這種狀態方塊最適合。框選時只框那一塊，不要框到旁邊的文字。</td>
+      </tr>
+    </table>
+
+    <p class="meta" style="margin-top:20px">
+      上面每一種都用同一個測試頁面實際跑過，包括「純文字百分比用錯條件會完全不觸發」這個反例。
+      如果你選了進度條相關的條件但程式找不到進度條，它會主動跳出來告訴你，
+      不會安靜地永遠不通知。
+    </p>
+  </section>
+
   <section id="smartscreen">
     <div class="notice">
       <h3>Windows 會跳出警告 — 怎麼安裝</h3>
