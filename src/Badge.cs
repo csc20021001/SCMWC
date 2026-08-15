@@ -36,7 +36,7 @@ namespace ScreenWatch
             Cursor = Cursors.Hand;
 
             var tip = new ToolTip();
-            tip.SetToolTip(this, "停止監視這一項");
+            tip.SetToolTip(this, Str.T("停止監視這一項", "Stop watching this"));
         }
 
         protected override CreateParams CreateParams

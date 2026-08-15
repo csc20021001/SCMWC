@@ -49,7 +49,7 @@ namespace ScreenWatch
                 string dir = System.IO.Path.GetDirectoryName(Path);
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 var sb = new StringBuilder();
-                sb.AppendLine("# ScreenWatch 設定檔");
+                sb.AppendLine("# ScreenWatch settings");
                 foreach (var kv in values) sb.AppendLine(kv.Key + "=" + kv.Value);
                 File.WriteAllText(Path, sb.ToString(), new UTF8Encoding(true));
             }

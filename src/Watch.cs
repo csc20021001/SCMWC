@@ -24,10 +24,10 @@ namespace ScreenWatch
         {
             switch (s)
             {
-                case WatchStatus.Blind: return "看不到畫面";
-                case WatchStatus.Parked: return "在背景監視";
-                case WatchStatus.Dead: return "視窗已關閉";
-                default: return "監視中";
+                case WatchStatus.Blind: return Str.T("看不到畫面", "No image");
+                case WatchStatus.Parked: return Str.T("在背景監視", "In background");
+                case WatchStatus.Dead: return Str.T("視窗已關閉", "Window closed");
+                default: return Str.T("監視中", "Watching");
             }
         }
 
@@ -116,7 +116,7 @@ namespace ScreenWatch
         {
             Hwnd = hwnd;
             Title = Native.TitleOf(hwnd);
-            if (Title.Length == 0) Title = "(無標題的視窗)";
+            if (Title.Length == 0) Title = Str.T("(無標題的視窗)", "(untitled window)");
             RECT r;
             Native.GetWindowRect(hwnd, out r);
             homeRect = r;
@@ -201,7 +201,7 @@ namespace ScreenWatch
             if (!Native.IsWindow(Hwnd))
             {
                 Status = WatchStatus.Dead;
-                StatusDetail = "目標視窗已關閉";
+                StatusDetail = Str.T("目標視窗已關閉", "the target window was closed");
                 return false;
             }
 
@@ -238,7 +238,7 @@ namespace ScreenWatch
             {
                 Status = WatchStatus.Blind;
                 StatusDetail = s.Unpainted >= 0.5
-                    ? "這個視窗沒有畫出任何東西" : "抓到的是一片黑";
+                    ? Str.T("這個視窗沒有畫出任何東西", "this window drew nothing at all") : Str.T("抓到的是一片黑", "the capture came back all black");
                 BlindSeconds += dt;
                 prevSig = null;          // 不要拿無效畫面去比較
                 return true;
@@ -246,14 +246,14 @@ namespace ScreenWatch
 
             LiveSeconds += dt;
             Status = IsParked ? WatchStatus.Parked : WatchStatus.Live;
-            StatusDetail = IsParked ? "已停在螢幕外繼續監視" : "";
+            StatusDetail = IsParked ? Str.T("已停在螢幕外繼續監視", "parked off-screen, still watching") : "";
 
             // 選了進度類條件卻找不到進度條 —— 這種情況以前只會安靜地顯示
             // 「學習中」然後永遠不通知。必須講清楚。
             if ((Trig.Kind == TriggerKind.Full || Trig.Kind == TriggerKind.PercentReached)
                 && Trig.BarNotFound)
             {
-                StatusDetail = "在這塊範圍裡找不到進度條，請重新框住那條進度條";
+                StatusDetail = Str.T("在這塊範圍裡找不到進度條，請重新框住那條進度條", "no progress bar found here — try framing the bar itself");
                 if (!barWarningSent)
                 {
                     barWarningSent = true;
@@ -294,7 +294,7 @@ namespace ScreenWatch
             {
                 ParkBehaviour = ParkResult.StopsRendering;
                 Unpark();
-                StatusDetail = "這個程式一藏起來就停止畫面更新，已自動放回螢幕上";
+                StatusDetail = Str.T("這個程式一藏起來就停止畫面更新，已自動放回螢幕上", "this program stops drawing when hidden, so it was moved back on-screen");
             }
             return true;
         }
@@ -351,12 +351,12 @@ namespace ScreenWatch
         {
             double total = LiveSeconds + BlindSeconds;
             string cover = total > 0
-                ? string.Format("　看得到的時間 {0:0}%", LiveSeconds / total * 100) : "";
+                ? string.Format(Str.T("　看得到的時間 {0:0}%", "   visible {0:0}% of the time"), LiveSeconds / total * 100) : "";
             string pct = "";
             if (Trig.Kind == TriggerKind.Full || Trig.Kind == TriggerKind.PercentReached)
                 pct = Trig.LastPercent >= 0
-                    ? string.Format("　目前進度 {0:0}%", Trig.LastPercent)
-                    : "　進度 學習中";
+                    ? string.Format(Str.T("　目前進度 {0:0}%", "   progress {0:0}%"), Trig.LastPercent)
+                    : Str.T("　進度 學習中", "   progress: learning");
             string name = Title.Length > 26 ? Title.Substring(0, 26) + "…" : Title;
 
             // 失敗原因要緊跟在狀態後面。放在整行最後的話，它會是第一個被
@@ -365,7 +365,7 @@ namespace ScreenWatch
 
             return string.Format("{0}　{1}{2}　{3}{4}{5}{6}",
                 name, StatusText.Of(Status), why, Trig.Describe(), pct, cover,
-                DiscordEnabled && Discord.Configured ? "　會推 Discord" : "");
+                DiscordEnabled && Discord.Configured ? Str.T("　會推 Discord", "   phone alerts on") : "");
         }
     }
 }

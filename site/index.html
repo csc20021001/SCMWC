@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ScreenWatch — 框住螢幕任何一塊，變了就通知你</title>
-<meta name="description" content="Windows 工具：框住螢幕上任何一塊區域，畫面變化符合條件時通知你。支援進度條跑完、顏色改變等條件，可推播到手機。">
+<title>ScreenWatch — Frame any part of your screen. Get told when it changes.</title>
+<meta name="description" content="A tiny Windows tool that watches any region of your screen and notifies you when it changes. Works with any application, because it only looks at pixels.">
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="ScreenWatch — 框住螢幕任何一塊，變了就通知你">
-<meta property="og:description" content="不管那塊畫面屬於哪個程式，它只看畫素，不需要跟任何程式整合。Windows 免費下載。">
+<meta property="og:title" content="ScreenWatch — Frame any part of your screen. Get told when it changes.">
+<meta property="og:description" content="Works with any application, because it only looks at pixels. Free for Windows.">
 <meta property="og:image" content="screenshot.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ScreenWatch — 框住螢幕任何一塊，變了就通知你">
-<meta name="twitter:description" content="不管那塊畫面屬於哪個程式，它只看畫素，不需要跟任何程式整合。Windows 免費下載。">
+<meta name="twitter:title" content="ScreenWatch — Frame any part of your screen. Get told when it changes.">
+<meta name="twitter:description" content="Works with any application, because it only looks at pixels. Free for Windows.">
 <meta name="twitter:image" content="screenshot.png">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2316151a'/%3E%3Crect x='9' y='9' width='14' height='14' rx='4' fill='%23e8734a'/%3E%3C/svg%3E">
@@ -25,16 +25,17 @@
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
-       font:16px/1.7 "Segoe UI",system-ui,-apple-system,"Noto Sans TC",sans-serif}
+       font:16px/1.7 "Segoe UI",system-ui,-apple-system,sans-serif}
   a{color:var(--accent)}
   .wrap{max-width:880px;margin:0 auto;padding:0 24px}
-  header{padding:64px 0 8px}
-  .brand{display:flex;align-items:center;gap:12px;margin-bottom:36px}
+  .top{display:flex;align-items:center;justify-content:space-between;padding-top:26px}
+  .brand{display:flex;align-items:center;gap:12px}
   .dot{width:14px;height:14px;border-radius:4px;background:var(--accent)}
   .brand b{font-size:19px;letter-spacing:-.01em}
-  h1{font-size:clamp(30px,5.2vw,46px);line-height:1.25;margin:0 0 16px;letter-spacing:-.02em}
-  .lede{font-size:clamp(16px,2.2vw,19px);color:var(--dim);margin:0 0 12px;max-width:62ch}
-  .lede-en{font-size:15px;color:var(--faint);margin:0 0 36px;max-width:66ch}
+  .lang{font-size:13.5px;color:var(--dim);text-decoration:none}
+  header{padding:44px 0 8px}
+  h1{font-size:clamp(30px,5vw,45px);line-height:1.2;margin:0 0 18px;letter-spacing:-.02em}
+  .lede{font-size:clamp(16px,2.1vw,19px);color:var(--dim);margin:0 0 34px;max-width:60ch}
   .cta{display:inline-flex;flex-direction:column;gap:3px;align-items:center;
        background:var(--accent);color:var(--ink);text-decoration:none;
        padding:16px 34px;border-radius:10px;font-weight:700;font-size:18px}
@@ -64,8 +65,8 @@
   .fake-btn{background:#e1e1e1;border:1px solid #adadad;border-radius:3px;
             padding:5px 20px;font-size:13px}
   table{width:100%;border-collapse:collapse;font-size:14.5px}
-  td{padding:9px 0;border-bottom:1px solid var(--line);color:var(--dim);vertical-align:top}
-  td:first-child{color:var(--text);width:34%;padding-right:16px}
+  td{padding:10px 0;border-bottom:1px solid var(--line);color:var(--dim);vertical-align:top}
+  td:first-child{color:var(--text);width:32%;padding-right:18px}
   tr:last-child td{border-bottom:0}
   footer{padding:34px 0 60px;border-top:1px solid var(--line);
          color:var(--faint);font-size:13.5px}
@@ -76,224 +77,245 @@
 <body>
 
 <div class="wrap">
-  <header>
+  <div class="top">
     <div class="brand"><span class="dot"></span><b>ScreenWatch</b></div>
-    <h1>框住螢幕任何一塊，<br>變了就通知你。</h1>
+    <a class="lang" href="/zh">中文</a>
+  </div>
+
+  <header>
+    <h1>Frame any part of your screen.<br>Get told when it changes.</h1>
     <p class="lede">
-      不管那塊畫面屬於哪個程式 —— Citrix、SAP、公司 2005 年寫的內部系統、
-      瀏覽器後台、算圖進度 —— 它只看畫素，不需要跟任何程式整合。
-    </p>
-    <p class="lede-en">
-      Watch any region of your screen and get notified when it changes.
-      Works with any application, because it only looks at pixels.
+      It doesn't matter which application owns that pixel — Citrix, SAP, an internal
+      tool written in 2005, a browser dashboard, a render queue. ScreenWatch only
+      looks at pixels, so it never needs to integrate with anything.
     </p>
 
-    <!-- 指向 GitHub Release 的 latest：出新版時網站不用改，也會有下載計數 -->
+    <!-- Points at the GitHub "latest" release so the site never goes stale -->
     <a class="cta" href="https://github.com/csc20021001/ScreenWatch-Releases/releases/latest/download/ScreenWatch-Setup.exe">
-      免費下載
-      <small>Windows 10 / 11 · 約 110 KB · 免安裝管理員權限</small>
+      Download free
+      <small>Windows 10 / 11 · ~110 KB · no admin rights needed</small>
     </a>
-    <p class="meta">目前所有功能免費開放，沒有使用期限，也沒有廣告或追蹤。<br>
-      <a href="https://github.com/csc20021001/ScreenWatch-Releases/releases">查看所有版本</a></p>
+    <p class="meta">
+      Everything is free right now. No time limit, no ads, no tracking.<br>
+      <a href="https://github.com/csc20021001/ScreenWatch-Releases/releases">All releases</a>
+    </p>
 
     <img class="shot" src="screenshot.png" width="1043" height="921"
-         alt="ScreenWatch 主視窗：監視清單顯示目標名稱、狀態、通知條件與進度，下方是通知紀錄">
+         alt="The ScreenWatch main window: a list of watched regions showing status, condition and progress, with a notification log below">
   </header>
 
   <section>
-    <h2>它能做什麼</h2>
+    <h2>What it does</h2>
     <div class="grid">
       <div class="card">
-        <h3>五種通知條件</h3>
-        <p>畫面有變化、進度條跑完、跑到指定 %、顏色變了、停下來了。
-           後四種是邊緣觸發，跑完只響一次，不會一直吵。</p>
+        <h3>Five ways to trigger</h3>
+        <p>On any change · when a progress bar fills · at a chosen percentage ·
+           when a colour changes · when the region goes quiet. The last four are
+           edge-triggered, so a finished job pings you once, not every second.</p>
       </div>
       <div class="card">
-        <h3>自己找出進度條</h3>
-        <p>直接框整個視窗就好，程式會在範圍內找出那條進度條。
-           就算它跑滿之後立刻歸零重跑，也抓得到。</p>
+        <h3>It finds the progress bar for you</h3>
+        <p>Frame the whole window if you like — ScreenWatch locates the bar inside
+           your selection. It still works when the bar hits 100% and instantly
+           resets for the next run.</p>
       </div>
       <div class="card">
-        <h3>不是長條的進度也能看</h3>
-        <p>像「上傳中 22%」這種純文字、一直轉的圈圈、一直捲的訊息，
-           改用「停下來就通知我」—— 不看形狀，只看那塊畫面有沒有安靜下來。</p>
+        <h3>Progress that isn't a bar</h3>
+        <p>A line of text like "Uploading… 22%", a spinner, a scrolling log —
+           none of these have a shape to measure. Use "tell me when it goes quiet"
+           instead: it watches for the region to stop moving.</p>
       </div>
       <div class="card">
-        <h3>推播到手機</h3>
-        <p>接上 Discord webhook，電腦在跑東西時人可以先去吃飯，
-           跑完手機會響。</p>
+        <h3>Alerts on your phone</h3>
+        <p>Point it at a Discord webhook and go get lunch while the machine works.
+           Your phone buzzes when it's done.</p>
       </div>
       <div class="card">
-        <h3>最小化也繼續看</h3>
-        <p>最小化的視窗不會繪製，所以程式會把它移到背景繼續監視，
-           而不是叫你別按最小化。</p>
+        <h3>Minimising doesn't blind it</h3>
+        <p>A minimised window draws nothing, so ScreenWatch parks it off-screen
+           and keeps watching — rather than telling you not to minimise things.</p>
       </div>
       <div class="card">
-        <h3>不會靜默失效</h3>
-        <p>抓不到畫面時會明講原因，那段時間也會從「看得到的時間」扣掉。
-           通知紀錄讓你分辨是條件沒成立，還是 Windows 擋掉了通知。</p>
-      </div>
-      <div class="card">
-        <h3>很輕</h3>
-        <p>單一執行檔，不到 100 KB，沒有背景服務、沒有安裝時的相依套件。</p>
+        <h3>It never fails silently</h3>
+        <p>If it can't read the region it says so and why, and that time is
+           subtracted from the coverage figure. The notification log tells you
+           whether a condition never fired or Windows swallowed the toast.</p>
       </div>
     </div>
   </section>
 
   <section id="which">
-    <h2>你要盯的進度長什麼樣？</h2>
+    <h2>What does your progress actually look like?</h2>
     <p style="margin:-8px 0 24px;color:var(--dim);font-size:15px;max-width:64ch">
-      「進度」在不同程式裡長得完全不一樣。下面五種是最常見的形式，
-      每一種適合的條件不同。選對了才不會等半天沒反應。
+      "Progress" looks completely different from one program to the next.
+      These five shapes cover most of it, and they don't all suit the same
+      condition. Picking the right one is the difference between a ping and
+      an hour of silence.
     </p>
 
     <img class="shot" style="margin:0 0 26px" src="progress-styles.png"
          width="775" height="1125"
-         alt="五種常見的進度呈現方式：長條進度條、純文字百分比、轉圈圈、往下捲的訊息、完成時變色的狀態方塊">
+         alt="Five common progress styles: a classic bar, a line of text with a percentage, a spinner, a scrolling log, and a status block that turns green when finished">
 
     <table>
       <tr>
-        <td>A · 典型的長條進度條</td>
-        <td><b style="color:var(--text)">跑完了才通知我</b><br>
-          有明確的填滿／未填滿分界，程式量得出百分比。
-          框選時框整個視窗也可以，它會自己找出那條進度條。</td>
+        <td>A · A classic bar</td>
+        <td><b style="color:var(--text)">Tell me when it finishes</b><br>
+          There's a clear filled/unfilled boundary, so the percentage is measurable.
+          You can frame the whole window; the bar gets located automatically.</td>
       </tr>
       <tr>
-        <td>B · 純文字百分比<br>
-          <span style="color:var(--faint);font-size:13px">「Uploading … 22%」</span></td>
-        <td><b style="color:var(--text)">停下來就通知我</b><br>
-          這種沒有任何可以量的形狀，「跑完了才通知」對它<b>完全無效</b>
-          —— 實測 22 秒內觸發 0 次。改用「停下來」則正常運作。</td>
+        <td>B · Text with a percentage<br>
+          <span style="color:var(--faint);font-size:13px">"Uploading… 22%"</span></td>
+        <td><b style="color:var(--text)">Tell me when it goes quiet</b><br>
+          There is no shape to measure here, so "when it finishes" is
+          <b>completely blind</b> to it — measured: zero triggers in 22 seconds.
+          "Goes quiet" handles it correctly.</td>
       </tr>
       <tr>
-        <td>C · 只有轉圈圈，沒有數字</td>
-        <td><b style="color:var(--text)">停下來就通知我</b><br>
-          圈圈停下來的那一刻就是做完的時候。</td>
+        <td>C · A spinner, no numbers</td>
+        <td><b style="color:var(--text)">Tell me when it goes quiet</b><br>
+          The moment the spinner stops is the moment the work finished.</td>
       </tr>
       <tr>
-        <td>D · 一直往下捲的訊息</td>
-        <td><b style="color:var(--text)">停下來就通知我</b><br>
-          編譯、部署、備份的輸出畫面都屬於這一類。
-          建議把「要安靜多久」設長一點（30 秒），避免中途卡頓被誤判成跑完。</td>
+        <td>D · A scrolling log</td>
+        <td><b style="color:var(--text)">Tell me when it goes quiet</b><br>
+          Builds, deploys and backups all look like this. Set a longer quiet
+          window (30s) so a mid-run pause isn't mistaken for completion.</td>
       </tr>
       <tr>
-        <td>E · 完成時整塊變色</td>
-        <td><b style="color:var(--text)">顏色變了就通知我</b><br>
-          紅變綠、灰變藍這種狀態方塊最適合。框選時只框那一塊，不要框到旁邊的文字。</td>
+        <td>E · A block that changes colour</td>
+        <td><b style="color:var(--text)">Tell me when the colour changes</b><br>
+          Red to green, grey to blue. Frame just the block, not the text beside it.</td>
       </tr>
     </table>
 
     <p class="meta" style="margin-top:20px">
-      上面每一種都用同一個測試頁面實際跑過，包括「純文字百分比用錯條件會完全不觸發」這個反例。
-      如果你選了進度條相關的條件但程式找不到進度條，它會主動跳出來告訴你，
-      不會安靜地永遠不通知。
+      Every row above was measured against a test page, including the negative case —
+      text percentages really do produce zero triggers with the wrong condition.
+      If you pick a bar-based condition and no bar can be found, ScreenWatch tells
+      you out loud instead of quietly never notifying you.
     </p>
   </section>
 
   <section id="smartscreen">
     <div class="notice">
-      <h3>Windows 會跳出警告 — 怎麼安裝</h3>
+      <h3>Windows will warn you — here's how to install anyway</h3>
       <p style="margin:0 0 6px;color:var(--dim);font-size:14.5px">
-        這個版本還沒有購買程式碼簽章憑證（一年約 100～300 美元，之後會補上），
-        所以 Microsoft Defender SmartScreen 會擋下來。
-        它的意思是<b style="color:var(--text)">「這個檔案下載的人還不夠多，我不認識它」</b>，
-        不是「這個檔案有毒」。任何新軟體在賣出足夠份數之前都會遇到。
+        This build isn't code-signed yet (a certificate runs $100–300 a year;
+        it's coming), so Microsoft Defender SmartScreen blocks it. What that
+        warning means is
+        <b style="color:var(--text)">"not enough people have downloaded this for me to
+        recognise it"</b> — not "this file is malicious". Every new program hits
+        this before it has sold enough copies.
       </p>
 
-      <p class="step-h">執行安裝檔時，畫面會像這樣：</p>
+      <p class="step-h">Running the installer looks like this:</p>
       <div class="fake">
-        <div class="fake-t">Windows 已保護您的電腦</div>
-        <div class="fake-b">Microsoft Defender SmartScreen 已防止某個無法辨識的應用程式啟動。
-          執行此應用程式可能會讓您的電腦暴露在風險中。</div>
-        <div class="fake-row"><span class="fake-link">其他資訊</span>
-          <span class="fake-btn">不要執行</span></div>
+        <div class="fake-t">Windows protected your PC</div>
+        <div class="fake-b">Microsoft Defender SmartScreen prevented an unrecognised app
+          from starting. Running this app might put your PC at risk.</div>
+        <div class="fake-row"><span class="fake-link">More info</span>
+          <span class="fake-btn">Don't run</span></div>
       </div>
 
       <ol>
-        <li>點左下角那行小小的 <b>其他資訊</b>（不是「不要執行」）</li>
-        <li>畫面會多出一個 <b>仍要執行</b> 的按鈕，點它</li>
-        <li>接著就是 ScreenWatch 的安裝畫面，勾選同意條款後按「安裝」</li>
+        <li>Click the small <b>More info</b> link (not "Don't run")</li>
+        <li>A <b>Run anyway</b> button appears — click it</li>
+        <li>The ScreenWatch installer opens; accept the terms and install</li>
       </ol>
 
-      <p class="step-h">如果沒有看到「其他資訊」</p>
+      <p class="step-h">If there's no "More info" link</p>
       <p style="margin:0;color:var(--dim);font-size:14.5px">
-        那代表檔案被標記為「從網際網路下載」而遭到封鎖。在下載好的
-        <code>ScreenWatch-Setup.exe</code> 上按<b>右鍵 → 內容</b>，
-        在最下方勾選 <b>解除封鎖</b>，按「確定」之後再執行一次。
+        The file was marked as downloaded from the internet and blocked outright.
+        Right-click <code>ScreenWatch-Setup.exe</code> → <b>Properties</b>, tick
+        <b>Unblock</b> at the bottom, click OK, and run it again.
       </p>
 
-      <p class="step-h">不需要關閉 SmartScreen</p>
+      <p class="step-h">You don't need to turn SmartScreen off</p>
       <p style="margin:0;color:var(--dim);font-size:14.5px">
-        上面的步驟只針對這一個檔案放行，你的防護完全不受影響。
-        網路上有些教學會叫你到「Windows 安全性」裡把 SmartScreen 整個關掉 ——
-        <b style="color:var(--warn)">請不要那樣做</b>：那會讓你之後下載的每一個檔案都失去這層保護，
-        而且很多人裝完就忘了開回去。
+        The steps above whitelist this one file and leave your protection intact.
+        Some guides tell you to disable SmartScreen in Windows Security —
+        <b style="color:var(--warn)">please don't</b>. That strips the check from every
+        file you download afterwards, and most people never switch it back on.
       </p>
 
-      <p class="step-h">想再確認一次的話</p>
+      <p class="step-h">If you'd rather verify first</p>
       <p style="margin:0;color:var(--dim);font-size:14.5px">
-        把安裝檔上傳到 <a href="https://www.virustotal.com/">VirusTotal</a>，
-        用七十幾種防毒引擎掃描。也可以比對校驗碼，確認你下載到的跟我發佈的是同一個檔案 ——
-        在 PowerShell 執行
-        <code>Get-FileHash .\ScreenWatch-Setup.exe -Algorithm SHA256</code>，
-        結果應該等於
-        <a href="https://github.com/csc20021001/ScreenWatch-Releases/releases/latest">Release 頁面</a>
-        公布的那一串。
+        Upload the installer to <a href="https://www.virustotal.com/">VirusTotal</a>
+        and let seventy-odd engines look at it. You can also confirm you got the
+        exact file that was published — run
+        <code>Get-FileHash .\ScreenWatch-Setup.exe -Algorithm SHA256</code>
+        and compare it with the hash on the
+        <a href="https://github.com/csc20021001/ScreenWatch-Releases/releases/latest">release page</a>.
       </p>
     </div>
   </section>
 
   <section>
-    <h2>你應該知道的事</h2>
+    <h2>Things you should know before installing</h2>
     <table>
       <tr>
-        <td>它會移動你的視窗</td>
-        <td>被監視的視窗一旦最小化，程式會把它還原並移到螢幕可見範圍之外，
-            以便繼續擷取畫面。可以隨時從系統匣選單放回來，關閉程式時也會自動還原。</td>
+        <td>It moves your windows</td>
+        <td>When a watched window is minimised, ScreenWatch restores it and parks it
+            outside the visible desktop so it keeps drawing and can still be captured.
+            Put it back any time from the tray menu; quitting the app restores it too.</td>
       </tr>
       <tr>
-        <td>「跑完了」是推論</td>
-        <td>Windows 的進度條填滿時帶有動畫，若程式完成後立即重設，
-            畫面上可能從未出現完整填滿的狀態。這時會依「進度大幅倒退」推論已完成，
-            可能把失敗重試誤判為跑完。</td>
+        <td>"Finished" is an inference</td>
+        <td>Windows progress bars animate as they fill, so a program that resets the
+            instant it completes may never actually render a full bar. ScreenWatch then
+            infers completion from progress falling sharply — which can mistake a failed
+            retry for a finished job.</td>
       </tr>
       <tr>
-        <td>不要用在關鍵用途</td>
-        <td>這是便利工具，不是監控或警報系統。醫療、工安、消防、交通、
-            自動交易等「沒收到通知就可能出事」的場景請不要使用。</td>
+        <td>Not for anything critical</td>
+        <td>This is a convenience tool, not a monitoring or alerting system. Do not use
+            it for medical, industrial safety, fire, transport or automated trading
+            purposes — anywhere a missed notification could cause harm.</td>
       </tr>
       <tr>
-        <td>手機推播會把資料送到 Discord</td>
-        <td>啟用後，視窗標題與觸發原因會傳到你指定的 Discord 頻道。
-            附上截圖的選項預設關閉。在公司環境使用前請自行確認合規。</td>
+        <td>Phone alerts send data to Discord</td>
+        <td>If you enable it, the window title and the reason for the alert are sent to
+            the Discord channel you choose. Attaching a screenshot is off by default.
+            Check your employer's policy before turning either on.</td>
       </tr>
       <tr>
-        <td>有些畫面抓不到</td>
-        <td>全螢幕遊戲、有版權保護的影片視窗不允許其他程式讀取畫面。
-            這種情況清單上會顯示「看不到畫面」並說明原因。</td>
+        <td>Some screens can't be captured</td>
+        <td>Full-screen games and DRM-protected video windows refuse to let other programs
+            read their pixels. ScreenWatch shows "no image" and explains why rather than
+            pretending to watch.</td>
+      </tr>
+      <tr>
+        <td>The app is in Chinese right now</td>
+        <td>The interface has not been translated yet. An English build is the next thing
+            on the list — until then you may want to wait.</td>
       </tr>
     </table>
-    <p class="meta">完整條款請見安裝時顯示的
-      <a href="EULA.txt">使用條款與免責聲明</a>。</p>
+    <p class="meta">Full terms are in the
+      <a href="terms.txt">licence and disclaimer</a>, also shown during installation.</p>
   </section>
 
   <section id="requirements">
-    <h2>系統需求</h2>
+    <h2>Requirements</h2>
     <table>
-      <tr><td>作業系統</td><td>Windows 10 1607 以上 / Windows 11</td></tr>
-      <tr><td>相依套件</td><td>.NET Framework 4.x（Windows 內建，不需另外安裝）</td></tr>
-      <tr><td>安裝位置</td><td><code>%LOCALAPPDATA%\Programs\ScreenWatch</code>，不需要管理員權限</td></tr>
-      <tr><td>設定檔</td><td><code>%LOCALAPPDATA%\ScreenWatch\config.txt</code>，解除安裝時一併刪除</td></tr>
-      <tr><td>資料蒐集</td><td>沒有。不含分析、不含廣告，除了你自己設定的 Discord 推播之外不對外連線。</td></tr>
+      <tr><td>OS</td><td>Windows 10 1607 or later / Windows 11</td></tr>
+      <tr><td>Runtime</td><td>.NET Framework 4.x — already part of Windows</td></tr>
+      <tr><td>Installs to</td><td><code>%LOCALAPPDATA%\Programs\ScreenWatch</code>, no admin rights</td></tr>
+      <tr><td>Settings file</td><td><code>%LOCALAPPDATA%\ScreenWatch\config.txt</code>, removed on uninstall</td></tr>
+      <tr><td>Data collection</td><td>None. No analytics, no ads, and no outbound connections
+          except the Discord webhook you configure yourself.</td></tr>
     </table>
   </section>
 
   <footer>
-    <p>ScreenWatch 0.1.1 · 與 Microsoft、Discord 及任何被監視的軟體均無關聯。</p>
+    <p>ScreenWatch 0.1.2 · Not affiliated with or endorsed by Microsoft, Discord,
+       or any application you point it at.</p>
     <p>
-      <a href="EULA.txt">使用條款與免責聲明</a> ·
+      <a href="terms.txt">Licence &amp; disclaimer</a> ·
+      <a href="/zh">中文</a> ·
       <a href="https://github.com/csc20021001/ScreenWatch-Releases">GitHub</a> ·
-      <a href="https://github.com/csc20021001/ScreenWatch-Releases/issues">回報問題</a>
+      <a href="https://github.com/csc20021001/ScreenWatch-Releases/issues">Report a problem</a>
     </p>
   </footer>
 </div>

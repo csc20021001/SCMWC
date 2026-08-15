@@ -37,6 +37,7 @@ namespace ScreenWatch
         public TrayApp()
         {
             Config.Load();
+            Str.Init();
             License.LoadLocal();
             if (License.NeedsRecheck())
                 System.Threading.ThreadPool.QueueUserWorkItem(delegate
@@ -53,14 +54,16 @@ namespace ScreenWatch
             tray.DoubleClick += delegate { ShowMain(); };
 
             var menu = new ContextMenuStrip();
-            menu.Items.Add("選取想要監視的區域…", null, delegate { AddWatch(); });
-            menu.Items.Add("開啟主視窗", null, delegate { ShowMain(); });
-            menu.Items.Add("設定手機通知…", null, delegate { EditDiscord(); });
-            menu.Items.Add("授權…", null, delegate { EditLicense(); });
+            menu.Items.Add(Str.T("選取想要監視的區域…", "Select a region to watch…"), null, delegate { AddWatch(); });
+            menu.Items.Add(Str.T("開啟主視窗", "Open main window"), null, delegate { ShowMain(); });
+            menu.Items.Add(Str.T("設定手機通知…", "Phone alerts…"), null, delegate { EditDiscord(); });
+            menu.Items.Add(Str.T("授權…", "Licence…"), null, delegate { EditLicense(); });
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add("把移到背景的視窗放回來", null, delegate { UnparkAll(); });
+            menu.Items.Add(Str.T("把移到背景的視窗放回來", "Put background windows back"), null, delegate { UnparkAll(); });
             menu.Items.Add(new ToolStripSeparator());
-            menu.Items.Add("結束", null, delegate { ExitApp(); });
+            menu.Items.Add(Str.T("語言 / Language", "語言 / Language"), null, delegate { ToggleLanguage(); });
+            menu.Items.Add(new ToolStripSeparator());
+            menu.Items.Add(Str.T("結束", "Quit"), null, delegate { ExitApp(); });
             tray.ContextMenuStrip = menu;
 
             timer = new Timer();
@@ -114,8 +117,10 @@ namespace ScreenWatch
 
             if (hwnd == IntPtr.Zero)
             {
-                MessageBox.Show("找不到這塊區域底下的視窗。\r\n"
-                    + "請對著某個程式的視窗框選，桌面本身沒辦法監視。", "ScreenWatch");
+                MessageBox.Show(Str.T(
+                    "找不到這塊區域底下的視窗。\r\n請對著某個程式的視窗框選，桌面本身沒辦法監視。",
+                    "No window found under that selection.\r\nFrame part of an application window — the desktop itself cannot be watched."),
+                    "ScreenWatch");
                 return;
             }
 
@@ -175,9 +180,13 @@ namespace ScreenWatch
 
             if (interactive && !okCapture)
             {
-                MessageBox.Show("目前看不到這個視窗的內容：" + why + "\r\n\r\n"
+                MessageBox.Show(Str.T(
+                    "目前看不到這個視窗的內容：" + why + "\r\n\r\n"
                     + "有些程式（例如全螢幕遊戲、有版權保護的影片）不允許其他程式讀取畫面。\r\n"
                     + "監視還是會建立，但清單上會顯示「看不到畫面」，也不會通知你。",
+                    "This window\u0027s contents cannot be read right now: " + why + "\r\n\r\n"
+                    + "Some programs — full-screen games, DRM-protected video — refuse to let others read their pixels.\r\n"
+                    + "The watch will still be created, but it will show \u0022No image\u0022 and will not notify you."),
                     "ScreenWatch");
             }
 
@@ -199,7 +208,7 @@ namespace ScreenWatch
                 IntPtr.Zero, moveProc, pid, tid, Native.WINEVENT_OUTOFCONTEXT);
             if (mh != IntPtr.Zero) moveHooks.Add(mh);
 
-            tray.ShowBalloonTip(3000, "已開始監視",
+            tray.ShowBalloonTip(3000, Str.T("已開始監視", "Now watching"),
                 string.Format("{0}　{1}", w.Title, w.Trig.Describe()), ToolTipIcon.Info);
             ShowMain();
         }
@@ -319,8 +328,8 @@ namespace ScreenWatch
             for (int i = 0; i < snapshot.Length; i++)
             {
                 if (snapshot[i].Status != WatchStatus.Dead) continue;
-                tray.ShowBalloonTip(3000, "監視結束",
-                    snapshot[i].Title + " 的視窗已關閉。", ToolTipIcon.Warning);
+                tray.ShowBalloonTip(3000, Str.T("監視結束", "Watch ended"),
+                    string.Format(Str.T("{0} 的視窗已關閉。", "The window for {0} was closed."), snapshot[i].Title), ToolTipIcon.Warning);
                 RemoveWatch(snapshot[i]);
             }
 
@@ -338,8 +347,8 @@ namespace ScreenWatch
                 for (int i = 0; i < watches.Count; i++)
                     if (watches[i].Status == WatchStatus.Blind) blind++;
             }
-            tray.Text = string.Format("ScreenWatch — 監視 {0} 項{1}",
-                copy.Count, blind > 0 ? string.Format("，{0} 項看不到", blind) : "");
+            tray.Text = string.Format(Str.T("ScreenWatch — 監視 {0} 項{1}", "ScreenWatch — watching {0}{1}"),
+                copy.Count, blind > 0 ? string.Format(Str.T("，{0} 項看不到", ", {0} with no image"), blind) : "");
 
             if (main != null && !main.IsDisposed && main.Visible) main.RefreshList(copy);
         }
@@ -373,7 +382,7 @@ namespace ScreenWatch
         void ShowProblem(Watch w, string problem)
         {
             if (main != null && !main.IsDisposed) main.AddHistory("⚠ " + w.Title + "　" + problem);
-            tray.ShowBalloonTip(8000, "這項監視不會通知你", w.Title + "：" + problem,
+            tray.ShowBalloonTip(8000, Str.T("這項監視不會通知你", "This watch will not notify you"), w.Title + ": " + problem,
                                 ToolTipIcon.Warning);
         }
 
@@ -381,14 +390,17 @@ namespace ScreenWatch
         void TestNotify()
         {
             if (main != null && !main.IsDisposed)
-                main.AddHistory("通知檢查：已送出。如果右下角沒有跳出來，"
-                    + "請到 Windows 設定裡允許 ScreenWatch 顯示通知");
+                main.AddHistory(Str.T(
+                    "通知檢查：已送出。如果右下角沒有跳出來，請到 Windows 設定裡允許 ScreenWatch 顯示通知",
+                    "Test alert sent. If nothing appeared in the corner, allow ScreenWatch to show notifications in Windows settings."));
             try { SystemSounds.Asterisk.Play(); }
             catch (Exception) { }
-            tray.ShowBalloonTip(6000, "ScreenWatch",
-                "通知正常。你看得到這則，就表示之後有變化時也收得到。", ToolTipIcon.Info);
+            tray.ShowBalloonTip(6000, "ScreenWatch", Str.T(
+                "通知正常。你看得到這則，就表示之後有變化時也收得到。",
+                "Notifications work. If you can see this, you will see the real ones too."), ToolTipIcon.Info);
             if (Discord.Configured)
-                Discord.Send("ScreenWatch：通知正常，之後有變化會傳到這裡。", null);
+                Discord.Send(Str.T("ScreenWatch：通知正常，之後有變化會傳到這裡。",
+                    "ScreenWatch: alerts are working. Changes will show up here."), null);
         }
 
         /// <summary>目標視窗一動，浮動關閉鈕就立刻跟上，不用等下一次定時更新。</summary>
@@ -418,9 +430,11 @@ namespace ScreenWatch
                 Watch w = snapshot[i];
                 if (w.ParkBehaviour == ParkResult.StopsRendering) return;
                 w.Park();
-                tray.ShowBalloonTip(5000, "已移到背景繼續監視",
+                tray.ShowBalloonTip(5000, Str.T("已移到背景繼續監視", "Moved to the background"), Str.T(
                     "視窗一旦最小化就看不到內容了，所以幫你移到背景，監視不會中斷。"
                     + "要拿回來的話，在系統匣圖示上按右鍵選「把移到背景的視窗放回來」。",
+                    "A minimised window draws nothing, so it was moved off-screen instead and watching continues. "
+                    + "Right-click the tray icon and choose \u0022Put background windows back\u0022 to return it."),
                     ToolTipIcon.Info);
                 return;
             }
@@ -446,6 +460,16 @@ namespace ScreenWatch
                 if (dlg.ShowDialog() == DialogResult.OK) dlg.ApplyTo(w);
             }
             RefreshMain();
+        }
+
+        /// <summary>切換介面語言。整個介面重建才會全部換過來。</summary>
+        void ToggleLanguage()
+        {
+            Str.Set(!Str.IsChinese);
+            MessageBox.Show(Str.T(
+                "語言已切換成中文。\r\n請重新啟動 ScreenWatch 讓整個介面更新。",
+                "Language switched to English.\r\nPlease restart ScreenWatch for the whole interface to update."),
+                "ScreenWatch");
         }
 
         void EditLicense()

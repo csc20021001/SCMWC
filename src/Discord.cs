@@ -58,7 +58,7 @@ namespace ScreenWatch
                 }
                 catch (Exception ex)
                 {
-                    LastResult = "失敗：" + ex.Message;
+                    LastResult = Str.T("失敗：", "failed: ") + ex.Message;
                 }
             });
         }
@@ -66,7 +66,7 @@ namespace ScreenWatch
         static string Describe(WebException ex)
         {
             var r = ex.Response as HttpWebResponse;
-            if (r == null) return "失敗：連不上網路或 Discord";
+            if (r == null) return Str.T("失敗：連不上網路或 Discord", "failed: cannot reach the network or Discord");
             string body = "";
             try
             {
@@ -74,11 +74,14 @@ namespace ScreenWatch
                     body = s.ReadToEnd();
             }
             catch (Exception) { }
-            if ((int)r.StatusCode == 404) return "失敗：找不到這個 webhook，網址可能貼錯或已被刪除";
+            if ((int)r.StatusCode == 404) return Str.T("失敗：找不到這個 webhook，網址可能貼錯或已被刪除",
+                "failed: webhook not found — the URL may be wrong or deleted");
             if ((int)r.StatusCode == 401 || (int)r.StatusCode == 403)
-                return "失敗：這個 webhook 沒有權限，請重新建立一個";
-            if ((int)r.StatusCode == 429) return "失敗：傳太頻繁被 Discord 暫時擋下";
-            return string.Format("失敗（代碼 {0}）{1}", (int)r.StatusCode,
+                return Str.T("失敗：這個 webhook 沒有權限，請重新建立一個",
+                "failed: this webhook is not permitted — create a new one");
+            if ((int)r.StatusCode == 429) return Str.T("失敗：傳太頻繁被 Discord 暫時擋下",
+                "failed: rate-limited by Discord for sending too often");
+            return string.Format(Str.T("失敗（代碼 {0}）{1}", "failed (code {0}) {1}"), (int)r.StatusCode,
                 body.Length > 120 ? body.Substring(0, 120) : body);
         }
 
@@ -109,7 +112,7 @@ namespace ScreenWatch
             req.ContentLength = body.Length;
             using (var s = req.GetRequestStream()) s.Write(body, 0, body.Length);
             using (var resp = (HttpWebResponse)req.GetResponse())
-                return "成功";
+                return Str.T("成功", "sent");
         }
 
         static string PostMultipart(string url, string text, byte[] png)
@@ -137,7 +140,7 @@ namespace ScreenWatch
                 s.Write(post, 0, post.Length);
             }
             using (var resp = (HttpWebResponse)req.GetResponse())
-                return "成功（含截圖）";
+                return Str.T("成功（含截圖）", "sent with screenshot");
         }
 
         static string JsonEscape(string s)

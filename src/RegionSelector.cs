@@ -189,7 +189,7 @@ namespace ScreenWatch
                 Native.GetWindowRect(h, out r);
                 hoverRect = new Rectangle(r.Left, r.Top, r.Width, r.Height);
                 hoverTitle = Native.TitleOf(h);
-                if (hoverTitle.Length == 0) hoverTitle = "(無標題的視窗)";
+                if (hoverTitle.Length == 0) hoverTitle = Str.T("(無標題的視窗)", "(untitled window)");
             }
             Invalidate();
         }
@@ -202,8 +202,9 @@ namespace ScreenWatch
             using (var f = new Font("Segoe UI", 13))
             using (var b = new SolidBrush(Color.FromArgb(235, 255, 255, 255)))
             {
-                g.DrawString("拖曳 = 框選自訂區域　　點一下 = 選取整個視窗　　"
-                             + "右上角 ✕ 或 Esc = 取消", f, b, 24, 20);
+                g.DrawString(Str.T("拖曳 = 框選自訂區域　　點一下 = 選取整個視窗　　右上角 ✕ 或 Esc = 取消",
+                             "Drag to frame a region    ·    Click once to pick a whole window    ·    ✕ or Esc to cancel"),
+                             f, b, 24, 20);
             }
 
             DrawCloseButton(g);
@@ -224,7 +225,7 @@ namespace ScreenWatch
                 string label = hoverTitle.Length > 60
                     ? hoverTitle.Substring(0, 60) + "…" : hoverTitle;
                 DrawSelection(g, local,
-                    string.Format("整個視窗：{0}  ({1} x {2})",
+                    string.Format(Str.T("整個視窗：{0}  ({1} x {2})", "Whole window: {0}  ({1} x {2})"),
                                   label, hoverRect.Width, hoverRect.Height),
                     Color.FromArgb(255, 120, 230, 140));
             }

@@ -1,0 +1,219 @@
+ScreenWatch — Licence and Disclaimer
+Version 0.1.2
+
+By installing or using this software you confirm that you have read, understood
+and accepted every clause below. If you do not accept any of them, do not
+install or use this software.
+
+This is an English translation provided for convenience. In the event of a
+conflict, the Traditional Chinese version (terms-zh.txt) governs.
+
+
+0. THIS SOFTWARE IS NOT CODE-SIGNED
+
+This build has no code-signing certificate. That means:
+
+  - Microsoft Defender SmartScreen will warn you when you run the installer
+  - Windows cannot confirm to you that the file really came from the author
+  - If the file were altered by a third party in transit, Windows could not
+    detect that either
+
+You are responsible for satisfying yourself as to the origin and integrity of
+the file before installing it. Suggested checks:
+
+  - Download only from the official website or the official GitHub release page
+  - Compare the published SHA-256 checksum with the file you received
+  - Scan it with a multi-engine service such as VirusTotal
+
+If you choose to bypass, disable or otherwise circumvent your operating system's
+security protections in order to install this software, that decision and its
+consequences are entirely your own. The author does not advise disabling
+SmartScreen or any anti-malware product, and accepts no liability whatsoever for
+damage arising from doing so.
+
+If you are not willing to accept these risks, please wait until a signed build
+is available.
+
+
+1. WHAT THIS SOFTWARE DOES
+
+ScreenWatch repeatedly captures the window region you select, analyses the
+pixels in that region, and raises a notification when the condition you chose
+is met.
+
+Capture is performed by asking the target application to render itself through
+the Windows PrintWindow interface. Only windows you explicitly select are
+captured. The whole desktop is not captured, and keyboard input is not recorded.
+
+
+2. NO WARRANTY
+
+The software is provided "as is", without warranty of any kind, express or
+implied, including but not limited to merchantability, fitness for a particular
+purpose, non-infringement, and the timeliness, accuracy or reliability of any
+notification.
+
+The author does not warrant that the software will function correctly in any
+particular situation, nor that any notification will ever be delivered.
+
+
+3. PROHIBITED USES
+
+This software is a general-purpose convenience tool. It is not a monitoring
+system, not an alarm system, and has not been certified for safety or
+reliability of any kind.
+
+You must not use it for, without limitation:
+
+  - medical devices, life support, or patient monitoring
+  - industrial process control, machinery control, or workplace safety alerts
+  - fire detection, security, or disaster warning
+  - aviation, marine, vehicular or any transport control
+  - automated financial trading, order execution, or risk control
+  - any purpose where failing to receive a notification could cause personal
+    injury, property damage, or legal liability
+
+If you nevertheless deploy it in such a setting, you assume all risk and
+consequences.
+
+
+4. DETECTION IS INFERENCE AND CAN BE WRONG
+
+The software reasons about pixels. It does not read the internal state of the
+program you are watching.
+
+Specifically regarding "tell me when it finishes": Windows progress bar controls
+animate while filling, so a program that resets its progress immediately upon
+completion may never render a fully filled bar at all. In that case ScreenWatch
+infers completion from a large backwards jump in progress. That is an inference,
+not an observation. It may report a failed retry as a completed job, and in some
+layouts it may not detect completion at all.
+
+Colour-change and general change detection can likewise be thrown off by screen
+layout, display scaling, colour management or graphics driver behaviour.
+
+
+5. THIS SOFTWARE MOVES YOUR WINDOWS
+
+When a window you are watching is minimised, ScreenWatch restores it and moves
+it outside the visible desktop area so that it continues to render and can still
+be captured. This is deliberate: a minimised window draws nothing and cannot be
+captured at all.
+
+You can return such windows at any time using "put background windows back" in
+the tray menu. They are also restored automatically when the software exits.
+
+If your workflow cannot tolerate windows being moved, do not use this software.
+
+
+6. PHONE ALERTS AND DATA LEAVING YOUR MACHINE
+
+Discord alerts are disabled by default and only become active after you supply a
+webhook URL yourself.
+
+Once enabled, the following is transmitted over the internet to Discord, a third
+party service:
+
+  - the title of the watched window
+  - the text describing why the alert fired
+  - if you separately tick "attach a screenshot", an image of that screen region
+
+"Attach a screenshot" is off by default. Enabling it means uploading the contents
+of your screen to an external service.
+
+You are responsible for confirming that such transmission is permitted in your
+environment, including but not limited to your employer's information security
+policy, confidentiality agreements, data protection law, and client contractual
+obligations. Once data leaves your machine, this software has no control over how
+it is stored, backed up or retained.
+
+The author is not affiliated with Discord and is not responsible for that
+service's availability or security.
+
+
+7. AUTHORISATION AND COMPLIANCE
+
+You must be the owner of the computer on which you run this software, or have
+the explicit permission of its owner.
+
+Capturing screen content may be restricted by, and you are responsible for
+confirming and obtaining any necessary authorisation under:
+
+  - your employer's information security and acceptable use policies
+  - the terms of service of remote desktop, Citrix, VDI or cloud platforms
+  - audit requirements applying to regulated systems (financial, medical,
+    governmental)
+  - the privacy rights and trade secrets of other people
+
+In managed corporate environments, anti-malware or endpoint detection software
+may classify screen capture as suspicious activity. Check with your IT
+department first.
+
+
+8. DATA STORAGE
+
+This software contains no usage tracking, no advertising, and transmits nothing
+back to the author.
+
+The configuration file — which includes any Discord webhook URL you enter — is
+stored as plain text at:
+
+  %LOCALAPPDATA%\ScreenWatch\config.txt
+
+A webhook URL is effectively a credential permitting anyone who holds it to post
+to that channel. Treat it like a password. This software does not encrypt that
+file.
+
+
+9. LIMITATION OF LIABILITY
+
+To the maximum extent permitted by law, the author shall not be liable for any
+direct, indirect, incidental, special, punitive or consequential damages,
+including without limitation:
+
+  - lost profits, lost revenue, or loss of goodwill
+  - loss or corruption of data
+  - business interruption or project delay
+  - notifications that were not delivered, delivered late, or delivered wrongly
+  - the consequences of any action taken, or not taken, because of a
+    notification or the absence of one
+  - the consequences of installing unsigned software, or of altering system
+    security settings in order to install this software
+  - outage, data exposure or policy change at any third party service such as
+    Discord
+
+even if the author has been advised of the possibility of such damages.
+
+You understand and agree that the notification feature may fail completely and
+without any indication in circumstances including: the target program changing
+how it draws, operating system updates, display configuration changes,
+intervention by anti-malware or endpoint protection software, the computer
+entering sleep or hibernation, loss of network connectivity, or a Discord
+service fault. You must not rely on this software as your only, or your last,
+line of notification.
+
+If any part of this limitation is held unenforceable in your jurisdiction, the
+author's total cumulative liability shall not exceed the amount you actually
+paid for this software; where you paid nothing, that amount is zero.
+
+
+9a. SEVERABILITY AND SURVIVAL
+
+If any clause is held invalid or unenforceable, the remaining clauses continue
+in full force. The clauses covering disclaimer of warranty, limitation of
+liability and prohibited uses survive your ceasing to use, or removing, this
+software.
+
+The author may amend these terms, and may change or discontinue the software, at
+any time and without prior notice. Continuing to use a later version constitutes
+acceptance of the terms shipped with that version.
+
+
+10. GENERAL
+
+This software is not affiliated with, sponsored by or endorsed by Microsoft,
+Discord, or any third party application you choose to watch with it. All
+trademarks belong to their respective owners.
+
+The author is under no obligation to provide support, to fix defects, or to
+continue development.

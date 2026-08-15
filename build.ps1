@@ -44,6 +44,7 @@ New-Item -ItemType Directory -Force (Join-Path $root 'dist') | Out-Null
     /r:System.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll `
     "/resource:$out,ScreenWatch.exe" `
     "/resource:$(Join-Path $root 'installer\EULA.txt'),EULA.txt" `
+    "/resource:$(Join-Path $root 'installer\EULA-en.txt'),EULA-en.txt" `
     (Join-Path $root 'installer\Setup.cs')
 
 if ($LASTEXITCODE -eq 0) {

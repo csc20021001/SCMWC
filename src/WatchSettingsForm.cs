@@ -41,7 +41,7 @@ namespace ScreenWatch
         public WatchSettingsForm(Watch w)
         {
             s = Native.SystemScale();
-            Text = "什麼時候通知我 — " + w.Title;
+            Text = Str.T("什麼時候通知我 — ", "When to alert me — ") + w.Title;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -50,83 +50,96 @@ namespace ScreenWatch
             Font = new Font("Segoe UI", 9f * (float)s);
 
             int y = Px(14);
-            AddHeader("什麼情況要通知我？", ref y);
+            AddHeader(Str.T("什麼情況要通知我？", "What should trigger an alert?"), ref y);
 
-            anyChange.Text = "畫面只要有變化就通知我";
+            anyChange.Text = Str.T("畫面只要有變化就通知我", "Anything on screen changes");
             Place(anyChange, ref y);
 
-            full.Text = "跑完了才通知我（進度條跑到滿）";
+            full.Text = Str.T("跑完了才通知我（進度條跑到滿）", "A progress bar reaches the end");
             Place(full, ref y);
 
-            percent.Text = "跑到指定進度就通知我";
+            percent.Text = Str.T("跑到指定進度就通知我", "A progress bar reaches a set point");
             Place(percent, ref y);
             percentValue.Minimum = 1;
             percentValue.Maximum = 100;
             percentValue.Value = w.Trig.PercentTarget;
-            AddRow("　　跑到幾 % 的時候通知", percentValue, Px(70), ref y);
+            AddRow(Str.T("　　跑到幾 % 的時候通知", "      Alert me at this percentage"), percentValue, Px(70), ref y);
 
-            colorChanged.Text = "顏色變了就通知我（例如紅色變成綠色）";
+            colorChanged.Text = Str.T("顏色變了就通知我（例如紅色變成綠色）", "A colour changes (red turning green, say)");
             Place(colorChanged, ref y);
 
-            wentQuiet.Text = "本來一直在動，停下來就通知我";
+            wentQuiet.Text = Str.T("本來一直在動，停下來就通知我", "It was moving and then goes quiet");
             Place(wentQuiet, ref y);
             quietFor.DropDownStyle = ComboBoxStyle.DropDownList;
             quietFor.Items.AddRange(new object[] {
-                "停 5 秒就算跑完", "停 10 秒就算跑完",
-                "停 30 秒就算跑完", "停 1 分鐘才算跑完" });
-            quietLabel.Text = "　　要安靜多久才算跑完";
+                Str.T("停 5 秒就算跑完", "5 seconds of quiet"),
+                Str.T("停 10 秒就算跑完", "10 seconds of quiet"),
+                Str.T("停 30 秒就算跑完", "30 seconds of quiet"),
+                Str.T("停 1 分鐘才算跑完", "1 minute of quiet") });
+            quietLabel.Text = Str.T("　　要安靜多久才算跑完", "      How long counts as finished");
             AddRow(quietLabel, quietFor, Px(190), ref y);
 
             y += Px(8);
-            AddHeader("細節（用不到就不用動）", ref y);
+            AddHeader(Str.T("細節（用不到就不用動）", "Details — leave these alone if unsure"), ref y);
 
             sensitivity.DropDownStyle = ComboBoxStyle.DropDownList;
             sensitivity.Items.AddRange(new object[] {
-                "一點點變化就通知我", "普通", "只有明顯變化才通知我" });
+                Str.T("一點點變化就通知我", "Even a tiny change counts"),
+                Str.T("普通", "Normal"),
+                Str.T("只有明顯變化才通知我", "Only obvious changes count") });
             sensitivity.SelectedIndex = 1;
-            sensitivityLabel.Text = "要多小的變化才算變化";
+            sensitivityLabel.Text = Str.T("要多小的變化才算變化", "How small a change counts");
             AddRow(sensitivityLabel, sensitivity, Px(210), ref y);
 
             colorSensitivity.DropDownStyle = ComboBoxStyle.DropDownList;
             colorSensitivity.Items.AddRange(new object[] {
-                "顏色稍微不同就算", "顏色明顯不同才算", "顏色差很多才算" });
+                Str.T("顏色稍微不同就算", "A slight shift counts"),
+                Str.T("顏色明顯不同才算", "Clearly different"),
+                Str.T("顏色差很多才算", "Completely different") });
             colorSensitivity.SelectedIndex = 1;
-            colorLabel.Text = "顏色要差多少才算變了";
+            colorLabel.Text = Str.T("顏色要差多少才算變了", "How different the colour must be");
             AddRow(colorLabel, colorSensitivity, Px(210), ref y);
 
             rate.DropDownStyle = ComboBoxStyle.DropDownList;
             rate.Items.AddRange(new object[] {
-                "盯緊（每秒 20 次，一閃而過也抓得到）",
-                "常常看（每秒 5 次）",
-                "普通（每秒 1 次）",
-                "偶爾看（每 3 秒，最省電）" });
+                Str.T("盯緊（每秒 20 次，一閃而過也抓得到）", "Watch closely — 20x a second, catches a flash"),
+                Str.T("常常看（每秒 5 次）", "Often — 5x a second"),
+                Str.T("普通（每秒 1 次）", "Normal — once a second"),
+                Str.T("偶爾看（每 3 秒，最省電）", "Occasionally — every 3s, lightest") });
             rate.SelectedIndex = IndexOfClosest(RateSeconds, w.IntervalSeconds);
-            AddRow("多久看一次畫面", rate, Px(290), ref y);
+            AddRow(Str.T("多久看一次畫面", "How often to look"), rate, Px(290), ref y);
 
-            discord.Text = "同時推播到 Discord（人不在電腦前也收得到）";
+            discord.Text = Str.T("同時推播到 Discord（人不在電腦前也收得到）", "Also send to Discord, so it reaches me away from the PC");
             discord.Checked = w.DiscordEnabled;
             Place(discord, ref y);
 
             y += Px(4);
-            note.Text = "「跑完了」和「跑到指定進度」是看畫面上那條進度條，會自己在你框的範圍裡"
-                      + "找出來，所以直接框整個視窗也可以。找不到的話會跳出來告訴你。\r\n"
-                      + "如果那個進度不是一條長條，而是像「上傳中 22%」這樣的純文字、"
-                      + "或是一直轉的圈圈、一直捲的訊息，請改用「停下來就通知我」——"
-                      + "它不看形狀，只看那塊畫面有沒有安靜下來。\r\n"
-                      + "看得越勤，越不會漏掉一閃而過的畫面，但被監視的那個程式會稍微變慢。";
+            note.Text = Str.T(
+                "「跑完了」和「跑到指定進度」是看畫面上那條進度條，會自己在你框的範圍裡"
+                + "找出來，所以直接框整個視窗也可以。找不到的話會跳出來告訴你。\r\n"
+                + "如果那個進度不是一條長條，而是像「上傳中 22%」這樣的純文字、"
+                + "或是一直轉的圈圈、一直捲的訊息，請改用「停下來就通知我」——"
+                + "它不看形狀，只看那塊畫面有沒有安靜下來。\r\n"
+                + "看得越勤，越不會漏掉一閃而過的畫面，但被監視的那個程式會稍微變慢。",
+                "The two progress-bar options locate the bar inside whatever you framed, "
+                + "so selecting the whole window is fine. If no bar can be found you will be told.\r\n"
+                + "If the progress is not a bar — a line of text like \u0022Uploading 22%\u0022, a spinner, "
+                + "a scrolling log — use \u0022it goes quiet\u0022 instead. That one ignores shape and "
+                + "simply watches for the region to stop moving.\r\n"
+                + "Looking more often catches brief flashes, but slows the watched program slightly.");
             note.ForeColor = Color.FromArgb(95, 95, 95);
             note.SetBounds(Px(14), y, Px(530), Px(100));
             Controls.Add(note);
             y += Px(106);
 
             var ok = new Button();
-            ok.Text = "開始監視";
+            ok.Text = Str.T("開始監視", "Start watching");
             ok.SetBounds(Px(330), y, Px(110), Px(32));
             ok.DialogResult = DialogResult.OK;
             Controls.Add(ok);
 
             var cancel = new Button();
-            cancel.Text = "取消";
+            cancel.Text = Str.T("取消", "Cancel");
             cancel.SetBounds(Px(448), y, Px(96), Px(32));
             cancel.DialogResult = DialogResult.Cancel;
             Controls.Add(cancel);

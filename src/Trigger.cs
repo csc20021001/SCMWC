@@ -57,13 +57,13 @@ namespace ScreenWatch
         {
             switch (Kind)
             {
-                case TriggerKind.Full: return "跑完了才通知";
-                case TriggerKind.ColorChanged: return "顏色變了就通知";
+                case TriggerKind.Full: return Str.T("跑完了才通知", "notify when it finishes");
+                case TriggerKind.ColorChanged: return Str.T("顏色變了就通知", "notify when the colour changes");
                 case TriggerKind.PercentReached:
-                    return string.Format("跑到 {0}% 就通知", PercentTarget);
+                    return string.Format(Str.T("跑到 {0}% 就通知", "notify at {0}%"), PercentTarget);
                 case TriggerKind.WentQuiet:
-                    return string.Format("停止變化 {0:0} 秒就通知", QuietSeconds);
-                default: return "有變化就通知";
+                    return string.Format(Str.T("停止變化 {0:0} 秒就通知", "notify after {0:0}s of quiet"), QuietSeconds);
+                default: return Str.T("有變化就通知", "notify on any change");
             }
         }
 
@@ -87,7 +87,7 @@ namespace ScreenWatch
         const int Cols = 60;            // 找進度條位置用
         const int MeasureCols = 150;    // 量百分比用，解析度要細一點
 
-        public string BandInfo = "尚未找到";
+        public string BandInfo = "not located yet";
 
         bool TryLocateBar(Capturer cap, Rectangle region)
         {
@@ -209,7 +209,7 @@ namespace ScreenWatch
             {
                 case TriggerKind.AnyChange:
                     return delta > ChangeThreshold
-                        ? string.Format("畫面變了（變化量 {0:0.0}）", delta) : null;
+                        ? string.Format(Str.T("畫面變了（變化量 {0:0.0}）", "the screen changed (delta {0:0.0})"), delta) : null;
 
                 case TriggerKind.ColorChanged:
                     return EvaluateColor(cap, region);
@@ -270,7 +270,7 @@ namespace ScreenWatch
             if (quiet < QuietSeconds) return null;
 
             armed = false;
-            return string.Format("停止變化超過 {0:0} 秒，看起來是跑完了", QuietSeconds);
+            return string.Format(Str.T("停止變化超過 {0:0} 秒，看起來是跑完了", "no change for over {0:0}s — looks finished"), QuietSeconds);
         }
 
         string EvaluateColor(Capturer cap, Rectangle region)
@@ -285,7 +285,7 @@ namespace ScreenWatch
 
             Color was = baseColor;
             baseColor = now;                    // 以新顏色為基準，才能偵測下一次變色
-            return string.Format("顏色變了（RGB {0},{1},{2} → {3},{4},{5}）",
+            return string.Format(Str.T("顏色變了（RGB {0},{1},{2} → {3},{4},{5}）", "the colour changed (RGB {0},{1},{2} to {3},{4},{5})"),
                 was.R, was.G, was.B, now.R, now.G, now.B);
         }
 
@@ -301,7 +301,7 @@ namespace ScreenWatch
                 {
                     bandTop = -1;
                     stuckCount = 0;
-                    BandInfo = "重新尋找中";
+                    BandInfo = "re-locating";
                 }
             }
 
@@ -320,8 +320,8 @@ namespace ScreenWatch
                 if (!armed) return null;
                 armed = false;
                 return Kind == TriggerKind.Full
-                    ? string.Format("跑完了（{0:0}%）", pct)
-                    : string.Format("到達 {0}%（目前 {1:0}%）", PercentTarget, pct);
+                    ? string.Format(Str.T("跑完了（{0:0}%）", "finished ({0:0}%)"), pct)
+                    : string.Format(Str.T("到達 {0}%（目前 {1:0}%）", "reached {0}% (now {1:0}%)"), PercentTarget, pct);
             }
 
             // 兩次檢查之間就跑完又歸零的情況。
@@ -331,7 +331,7 @@ namespace ScreenWatch
             {
                 armed = false;
                 return string.Format(
-                    "跑完了（在兩次檢查之間完成，進度已從 {0:0}% 歸零重跑）", prev);
+                    Str.T("跑完了（在兩次檢查之間完成，進度已從 {0:0}% 歸零重跑）", "finished between two checks — progress dropped from {0:0}% and restarted"), prev);
             }
 
             // 掉回目標以下才重新武裝，避免停在 100% 一直吵

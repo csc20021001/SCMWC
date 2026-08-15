@@ -74,8 +74,8 @@ namespace ScreenWatch
             // --- 主要動作 ---
             select.Dock = DockStyle.Top;
             select.Height = Px(60);
-            select.Title = "選取想要監視的區域";
-            select.Subtitle = "Select a region to watch";
+            select.Title = Str.T("選取想要監視的區域", "Select a region to watch");
+            select.Subtitle = Str.T("Select a region to watch", "");
             select.Margin = new Padding(Px(22), 0, Px(22), 0);
             select.Click += delegate
             {
@@ -89,8 +89,11 @@ namespace ScreenWatch
             hint.ForeColor = Theme.TextDim;
             hint.Font = fHint;
             hint.Padding = new Padding(Px(24), Px(10), Px(24), 0);
-            hint.Text = "拖曳滑鼠 = 框選自訂區域，點一下 = 選取整個視窗。可以同時監視多個區域。\r\n"
-                      + "Drag to frame a custom region, or click once to pick a whole window.";
+            hint.Text = Str.T(
+                "拖曳滑鼠 = 框選自訂區域，點一下 = 選取整個視窗。可以同時監視多個區域。\r\n"
+                + "雙擊清單某一列可以改它的通知條件。",
+                "Drag to frame a custom region, or click once to pick a whole window.\r\n"
+                + "You can watch several at once. Double-click a row to change its condition.");
 
             // --- 監視清單 ---
             list.Dock = DockStyle.Top;
@@ -133,7 +136,7 @@ namespace ScreenWatch
             footer.BackColor = Theme.FooterBg;
             footer.Paint += PaintFooter;
 
-            testLink.Text = "試發一則通知";
+            testLink.Text = Str.T("試發一則通知", "Send a test alert");
             testLink.Font = new Font("Segoe UI", 9.5f * (float)s, FontStyle.Bold);
             testLink.SetBounds(Px(22), Px(15), Px(110), Px(20));
             testLink.Click += delegate
@@ -143,7 +146,7 @@ namespace ScreenWatch
             };
             footer.Controls.Add(testLink);
 
-            phoneLink.Text = "設定手機通知…";
+            phoneLink.Text = Str.T("設定手機通知…", "Phone alerts…");
             phoneLink.Font = new Font("Segoe UI", 9.5f * (float)s, FontStyle.Bold);
             phoneLink.SetBounds(Px(146), Px(15), Px(130), Px(20));
             phoneLink.Click += delegate
@@ -205,7 +208,7 @@ namespace ScreenWatch
         void PaintLogLabel(object sender, PaintEventArgs e)
         {
             Graphics g = e.Graphics;
-            TextRenderer.DrawText(g, "通知紀錄（最新的在最上面）", fSection,
+            TextRenderer.DrawText(g, Str.T("通知紀錄（最新的在最上面）", "Alert log (newest first)"), fSection,
                 new Point(Px(22), Px(10)), Theme.TextDim, TextFormatFlags.NoPadding);
 
             int today = 0;
@@ -214,7 +217,8 @@ namespace ScreenWatch
                 var le = log.Items[i] as LogEntry;
                 if (le != null && le.Time.Date == DateTime.Today) today++;
             }
-            string right = today == 0 ? "今天還沒有" : string.Format("今天 {0} 則", today);
+            string right = today == 0 ? Str.T("今天還沒有", "none today")
+                : string.Format(Str.T("今天 {0} 則", "{0} today"), today);
             Size sz = TextRenderer.MeasureText(g, right, fMeta);
             TextRenderer.DrawText(g, right, fMeta,
                 new Point(logLabel.ClientSize.Width - Px(22) - sz.Width, Px(11)),
@@ -228,7 +232,7 @@ namespace ScreenWatch
                 g.DrawLine(p, 0, 0, footer.ClientSize.Width, 0);
 
             string right = Discord.LastResult.Length > 0
-                ? "上次傳送 " + Discord.LastResult : "";
+                ? Str.T("上次傳送 ", "Last send: ") + Discord.LastResult : "";
             if (right.Length == 0) return;
             Size sz = TextRenderer.MeasureText(g, right, fMeta);
             TextRenderer.DrawText(g, right, fMeta,
@@ -303,7 +307,8 @@ namespace ScreenWatch
                 default: pillFore = Theme.MutedText; pillBack = Theme.MutedBg; break;
             }
             Theme.DrawPill(g, new Point(x + nameW + Px(10), y + Px(2)),
-                w.StatusLabel + " " + w.StatusLabelEn, fPill, pillFore, pillBack, Px(7), Px(4));
+                Str.IsChinese ? w.StatusLabel + " " + w.StatusLabelEn : w.StatusLabelEn,
+                fPill, pillFore, pillBack, Px(7), Px(4));
 
             // 第二行：條件 · 進度 · 覆蓋率 · 手機通知
             y += lineH + Px(2);
@@ -311,9 +316,10 @@ namespace ScreenWatch
             bits.Add(w.ConditionLabel);
             if (w.ShowsProgress)
                 bits.Add(w.ProgressPercent >= 0
-                    ? string.Format("目前進度 {0:0}%", w.ProgressPercent) : "進度 學習中");
-            bits.Add(string.Format("看得到的時間 {0:0}%", w.CoveragePercent));
-            if (w.PushesToPhone) bits.Add("會推手機通知");
+                    ? string.Format(Str.T("目前進度 {0:0}%", "progress {0:0}%"), w.ProgressPercent)
+                    : Str.T("進度 學習中", "progress: learning"));
+            bits.Add(string.Format(Str.T("看得到的時間 {0:0}%", "visible {0:0}%"), w.CoveragePercent));
+            if (w.PushesToPhone) bits.Add(Str.T("會推手機通知", "phone alerts on"));
             string detail = string.Join(" · ", bits.ToArray());
 
             int contentW = body.Width - closeZone - Px(24);
@@ -449,7 +455,9 @@ namespace ScreenWatch
         public void RefreshList(List<Watch> watches)
         {
             watchCount = watches.Count;
-            phoneStatus = Discord.Configured ? "手機通知 · 已連結 Discord" : "手機通知 · 尚未設定";
+            phoneStatus = Discord.Configured
+                ? Str.T("手機通知 · 已連結 Discord", "Phone alerts · Discord connected")
+                : Str.T("手機通知 · 尚未設定", "Phone alerts · not set up");
             header.Invalidate();
             footer.Invalidate();
 
@@ -463,7 +471,8 @@ namespace ScreenWatch
             list.BeginUpdate();
             list.Items.Clear();
             if (watches.Count == 0)
-                list.Items.Add("還沒有監視項目 —— 按上面的按鈕開始");
+                list.Items.Add(Str.T("還沒有監視項目 —— 按上面的按鈕開始",
+                    "Nothing is being watched yet — use the button above to start"));
             else
                 for (int i = 0; i < watches.Count; i++) list.Items.Add(watches[i]);
             list.EndUpdate();

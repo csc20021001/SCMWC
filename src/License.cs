@@ -132,7 +132,8 @@ namespace ScreenWatch
 
             if (Config.Get("license.sig", "") != Sign(Payload()))
             {
-                LastError = "本機的授權資料被改過或來自別台電腦";
+                LastError = Str.T("本機的授權資料被改過或來自別台電腦",
+                    "The stored licence was modified, or came from another computer");
                 State = LicenseState.Expired;
                 return;
             }
@@ -176,7 +177,7 @@ namespace ScreenWatch
             licenseKey = (licenseKey ?? "").Trim();
             if (licenseKey.Length < 8)
             {
-                LastError = "授權碼看起來不完整";
+                LastError = Str.T("授權碼看起來不完整", "That licence key looks incomplete");
                 return false;
             }
 
@@ -189,7 +190,7 @@ namespace ScreenWatch
             if (!JsonBool(json, "activated"))
             {
                 LastError = JsonString(json, "error");
-                if (LastError.Length == 0) LastError = "啟用被拒絕";
+                if (LastError.Length == 0) LastError = Str.T("啟用被拒絕", "Activation was refused");
                 return false;
             }
 
@@ -227,7 +228,9 @@ namespace ScreenWatch
             {
                 SaveLocal("inactive");
                 State = LicenseState.Expired;
-                LastError = status.Length > 0 ? "授權狀態：" + status : "授權已失效";
+                LastError = status.Length > 0
+                    ? Str.T("授權狀態：", "Licence status: ") + status
+                    : Str.T("授權已失效", "This licence is no longer valid");
             }
         }
 
@@ -243,7 +246,8 @@ namespace ScreenWatch
             State = LicenseState.Free;
             if (json == null)
             {
-                LastError = "本機已停用，但沒連上伺服器，名額可能要等下次才會釋出";
+                LastError = Str.T("本機已停用，但沒連上伺服器，名額可能要等下次才會釋出",
+                    "Deactivated locally, but the server was unreachable — the seat may free up later");
                 return false;
             }
             return true;
@@ -282,7 +286,7 @@ namespace ScreenWatch
                     }
                     catch (Exception) { }
                 }
-                LastError = "連不上授權伺服器";
+                LastError = Str.T("連不上授權伺服器", "Cannot reach the licence server");
                 return null;
             }
             catch (Exception ex)

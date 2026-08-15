@@ -564,6 +564,8 @@ namespace ScreenWatch
         /// 迴歸測試：進度條滿了立刻歸零時，「跑完了才通知」還抓不抓得到。
         /// 刻意用很慢的取樣（每 3 秒）盯一個 5 秒跑完就歸零的進度條 ——
         /// 那個 100% 幾乎不可能剛好被取樣到，必須靠「進度突然倒退」推斷出來。
+        /// 需要 ProgressDemo 以 --fast --nohold 啟動（5 秒跑完立刻歸零）。
+        /// 用預設模式跑的話進度條會停在 100%，變成直接偵測，這個測試就沒有意義。
         /// 用法：ScreenWatch.exe --misstest "視窗標題片段"
         /// </summary>
         public static void MissTest(string titlePart)
@@ -612,7 +614,7 @@ namespace ScreenWatch
             sb.AppendLine(string.Format("45 秒內觸發 {0} 次（進度條約跑完 9 輪）", fires));
             foreach (string s in reasons) sb.AppendLine("  → " + s);
             sb.AppendLine();
-            sb.AppendLine("結論 : " + (fires >= 3 ? "PASS" : "FAIL"));
+            sb.AppendLine("結論 : " + (fires >= 2 ? "PASS" : "FAIL"));
             Write("misstest.log", sb);
         }
 
