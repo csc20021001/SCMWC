@@ -6,13 +6,18 @@
 # Nothing here needs a paid plan: Pages' free tier allows commercial use and has
 # unlimited bandwidth for static assets.
 #
-#   .\deploy-site.ps1                 # deploy to project "screenwatch"
+#   .\deploy-site.ps1                 # deploy to project "scmwc"  -> scmwc.pages.dev
 #   .\deploy-site.ps1 -Project myname # deploy to a different project name
 #   .\deploy-site.ps1 -Preview        # preview branch instead of production
+#
+# The old project "screenwatch" (screenwatch-8in.pages.dev) is still live, but it
+# now serves nothing except a redirect to scmwc.pages.dev - see site-redirect\.
+# Deploy that one with:  .\deploy-site.ps1 -Project screenwatch  is WRONG, it would
+# publish the real site there again. Use deploy-redirect.ps1 instead.
 
 [CmdletBinding()]
 param(
-    [string]$Project = 'screenwatch',
+    [string]$Project = 'scmwc',
     [switch]$Preview
 )
 

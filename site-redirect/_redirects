@@ -1,0 +1,8 @@
+# The site moved to scmwc.pages.dev when the product was renamed from
+# ScreenWatch to SCMWC. Everything here is a permanent redirect so that links
+# posted before the rename keep working - including ones we cannot go back and
+# edit.
+#
+# :splat carries the rest of the path, so /zh and /terms.txt land on their
+# counterparts rather than all collapsing onto the home page.
+/*  https://scmwc.pages.dev/:splat  301
