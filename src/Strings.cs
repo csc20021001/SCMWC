@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     /// <summary>
     /// 介面語言。

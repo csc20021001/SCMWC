@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     /// <summary>
-    /// 極簡設定檔：%LOCALAPPDATA%\ScreenWatch\config.txt，一行一個 key=value。
+    /// 極簡設定檔：%LOCALAPPDATA%\SCMWC\config.txt，一行一個 key=value。
     /// 目前只存 Discord 設定；之後要存監視項目也放這裡。
     /// </summary>
     public static class Config
@@ -19,8 +19,22 @@ namespace ScreenWatch
             {
                 string dir = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "ScreenWatch");
+                    "SCMWC");
                 return System.IO.Path.Combine(dir, "config.txt");
+            }
+        }
+
+        /// <summary>
+        /// 0.1.2 之前這個產品叫 ScreenWatch，設定檔在另一個資料夾。
+        /// 升級的人不該發現自己填的 Discord 網址不見了，所以第一次啟動時搬過來。
+        /// </summary>
+        static string LegacyPath
+        {
+            get
+            {
+                return System.IO.Path.Combine(System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "ScreenWatch"), "config.txt");
             }
         }
 
@@ -29,8 +43,13 @@ namespace ScreenWatch
             values.Clear();
             try
             {
-                if (!File.Exists(Path)) return;
-                foreach (string line in File.ReadAllLines(Path, Encoding.UTF8))
+                string from = Path;
+                if (!File.Exists(from))
+                {
+                    if (!File.Exists(LegacyPath)) return;
+                    from = LegacyPath;
+                }
+                foreach (string line in File.ReadAllLines(from, Encoding.UTF8))
                 {
                     string t = line.Trim();
                     if (t.Length == 0 || t.StartsWith("#")) continue;
@@ -38,6 +57,9 @@ namespace ScreenWatch
                     if (i <= 0) continue;
                     values[t.Substring(0, i).Trim()] = t.Substring(i + 1).Trim();
                 }
+                // 搬過來的設定立刻寫到新位置，之後就不再碰舊資料夾。
+                // 舊檔留著不刪：使用者若降回舊版還要用它。
+                if (from != Path) Save();
             }
             catch (Exception) { }
         }
@@ -49,7 +71,7 @@ namespace ScreenWatch
                 string dir = System.IO.Path.GetDirectoryName(Path);
                 if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 var sb = new StringBuilder();
-                sb.AppendLine("# ScreenWatch settings");
+                sb.AppendLine("# SCMWC settings");
                 foreach (var kv in values) sb.AppendLine(kv.Key + "=" + kv.Value);
                 File.WriteAllText(Path, sb.ToString(), new UTF8Encoding(true));
             }

@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     /// <summary>
     /// 不經過滑鼠的測試入口。UI 的座標運算和事件接線最容易寫錯，
@@ -26,7 +26,7 @@ namespace ScreenWatch
 
         /// <summary>
         /// 拿產品的 Capturer + Watch 去盯一個真實視窗。
-        /// 用法：ScreenWatch.exe --selftest "視窗標題片段"
+        /// 用法：SCMWC.exe --selftest "視窗標題片段"
         /// </summary>
         public static void Run(string titlePart)
         {
@@ -91,7 +91,7 @@ namespace ScreenWatch
         }
 
         /// <summary>
-        /// 驗證四種通知條件。用法：ScreenWatch.exe --triggertest "視窗標題片段"
+        /// 驗證四種通知條件。用法：SCMWC.exe --triggertest "視窗標題片段"
         /// 拿 ProgressDemo 當目標最合適：它會跑進度條，也會在完成時整條變綠。
         /// </summary>
         public static void TriggerTest(string titlePart)
@@ -161,7 +161,7 @@ namespace ScreenWatch
 
         /// <summary>
         /// 量一次取樣實際花多久、瓶頸在哪一段，據此決定抓取頻率的上限。
-        /// 用法：ScreenWatch.exe --bench "視窗標題片段"
+        /// 用法：SCMWC.exe --bench "視窗標題片段"
         /// </summary>
         public static void Bench(string titlePart)
         {
@@ -211,7 +211,7 @@ namespace ScreenWatch
         /// <summary>
         /// 對五種不同樣式的進度指示，各自用建議的條件跑一次，確認建議是對的。
         /// 目標是 demo\progress-styles.html。
-        /// 用法：ScreenWatch.exe --stylestest "Progress Styles"
+        /// 用法：SCMWC.exe --stylestest "Progress Styles"
         /// </summary>
         public static void StylesTest(string titlePart)
         {
@@ -309,7 +309,7 @@ namespace ScreenWatch
         /// <summary>
         /// 驗證「停下來就通知」。這是給那些不是長條的進度用的 ——
         /// 純文字百分比、轉圈圈、一直捲的 log。
-        /// 用法：ScreenWatch.exe --quiettest "視窗標題片段"
+        /// 用法：SCMWC.exe --quiettest "視窗標題片段"
         /// </summary>
         public static void QuietTest(string titlePart)
         {
@@ -371,7 +371,7 @@ namespace ScreenWatch
         /// <summary>
         /// 逐筆記錄每次取樣量到的進度，用來看清楚「為什麼沒觸發」。
         /// 條件跟產品預設完全一樣：整個視窗、跑完了才通知、每秒 20 次。
-        /// 用法：ScreenWatch.exe --trace "視窗標題片段"
+        /// 用法：SCMWC.exe --trace "視窗標題片段"
         /// </summary>
         public static void Trace(string titlePart)
         {
@@ -432,7 +432,7 @@ namespace ScreenWatch
         /// <summary>
         /// 量「實際達到」的取樣頻率，而不是設定值。
         /// 同時測 1 項和 3 項監視，看多項並存時會掉多少。
-        /// 用法：ScreenWatch.exe --ratetest "視窗標題片段"
+        /// 用法：SCMWC.exe --ratetest "視窗標題片段"
         /// </summary>
         public static void RateTest(string titlePart)
         {
@@ -494,7 +494,7 @@ namespace ScreenWatch
         /// <summary>
         /// 診斷「跑完了才通知」在不同框選方式下會發生什麼。
         /// 使用者最自然的操作是「點一下選整個視窗」，這個測試就是要驗證那樣也能work。
-        /// 用法：ScreenWatch.exe --bartest "視窗標題片段"
+        /// 用法：SCMWC.exe --bartest "視窗標題片段"
         /// </summary>
         public static void BarTest(string titlePart)
         {
@@ -566,7 +566,7 @@ namespace ScreenWatch
         /// 那個 100% 幾乎不可能剛好被取樣到，必須靠「進度突然倒退」推斷出來。
         /// 需要 ProgressDemo 以 --fast --nohold 啟動（5 秒跑完立刻歸零）。
         /// 用預設模式跑的話進度條會停在 100%，變成直接偵測，這個測試就沒有意義。
-        /// 用法：ScreenWatch.exe --misstest "視窗標題片段"
+        /// 用法：SCMWC.exe --misstest "視窗標題片段"
         /// </summary>
         public static void MissTest(string titlePart)
         {
@@ -620,7 +620,7 @@ namespace ScreenWatch
 
         /// <summary>
         /// 驗證「點某一列的叉叉就移除」，包含座標命中判定與事件接線。
-        /// 用法：ScreenWatch.exe --uitest "目標視窗標題片段"
+        /// 用法：SCMWC.exe --uitest "目標視窗標題片段"
         /// </summary>
         public static void UiTest(string titlePart)
         {
@@ -688,7 +688,7 @@ namespace ScreenWatch
         }
 
         /// <summary>
-        /// 送一則測試推播。用法：ScreenWatch.exe --discordtest "https://..."
+        /// 送一則測試推播。用法：SCMWC.exe --discordtest "https://..."
         /// </summary>
         public static void DiscordTest(string url) { DiscordTest(url, false); }
 
@@ -717,7 +717,7 @@ namespace ScreenWatch
                 }
             }
             Discord.LastResult = "送出中…";
-            Discord.Send("ScreenWatch 測試推播：**Progress Demo** 跑完了（100%）", img);
+            Discord.Send("SCMWC 測試推播：**Progress Demo** 跑完了（100%）", img);
             for (int i = 0; i < 40 && Discord.LastResult == "送出中…"; i++)
                 System.Threading.Thread.Sleep(250);
             sb.AppendLine("結果 = " + Discord.LastResult);
@@ -726,7 +726,7 @@ namespace ScreenWatch
 
         /// <summary>
         /// 走完整條授權流程：啟用 → 讀本機 → 重新驗證 → 竄改偵測 → 停用。
-        /// 用法：ScreenWatch.exe --licensetest <api-base-url>
+        /// 用法：SCMWC.exe --licensetest <api-base-url>
         /// </summary>
         public static void LicenseTest(string apiBase)
         {
@@ -809,7 +809,7 @@ namespace ScreenWatch
 
         /// <summary>
         /// 印出浮動關閉鈕的顯示判斷是怎麼算出來的。
-        /// 用法：ScreenWatch.exe --badgetest "視窗標題片段"
+        /// 用法：SCMWC.exe --badgetest "視窗標題片段"
         /// </summary>
         public static void BadgeTest(string titlePart)
         {
@@ -862,7 +862,7 @@ namespace ScreenWatch
         }
 
         /// <summary>
-        /// 印出某座標會選到哪個視窗。用法：ScreenWatch.exe --pick x,y
+        /// 印出某座標會選到哪個視窗。用法：SCMWC.exe --pick x,y
         /// </summary>
         public static void Pick(string coords)
         {

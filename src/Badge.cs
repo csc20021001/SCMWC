@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     /// <summary>
     /// 貼在被監視區域旁邊的小關閉鈕。點它就停掉那一項監視。

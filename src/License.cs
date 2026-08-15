@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Win32;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     public enum LicenseState
     {
@@ -88,7 +88,7 @@ namespace ScreenWatch
         /// </summary>
         static string Sign(string payload)
         {
-            byte[] key = Encoding.UTF8.GetBytes("ScreenWatch/0.1|" + DeviceId());
+            byte[] key = Encoding.UTF8.GetBytes("SCMWC/0.1|" + DeviceId());
             using (var h = new HMACSHA256(key))
                 return Convert.ToBase64String(h.ComputeHash(Encoding.UTF8.GetBytes(payload)));
         }
@@ -263,7 +263,7 @@ namespace ScreenWatch
                 req.Method = "POST";
                 req.Accept = "application/json";
                 req.ContentType = "application/x-www-form-urlencoded";
-                req.UserAgent = "ScreenWatch/0.1";
+                req.UserAgent = "SCMWC/0.1";
                 req.Timeout = 15000;
                 req.ReadWriteTimeout = 15000;
                 byte[] data = Encoding.UTF8.GetBytes(body);

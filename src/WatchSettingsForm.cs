@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     /// <summary>
     /// 框選完之後跳出來，讓使用者決定什麼情況要通知。

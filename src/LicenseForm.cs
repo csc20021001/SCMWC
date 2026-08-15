@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     /// <summary>輸入授權碼、查看授權狀態。</summary>
     public sealed class LicenseForm : Form
@@ -126,7 +126,7 @@ namespace ScreenWatch
             if (MessageBox.Show(Str.T(
                     "要在這台電腦停用這組授權嗎？\r\n停用後名額會還回去，可以拿去啟用別台電腦。",
                     "Deactivate this licence on this computer?\r\nThe seat is returned and can be used on another machine."),
-                    "ScreenWatch", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+                    "SCMWC", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
                 != DialogResult.Yes) return;
             deactivate.Enabled = false;
             result.Text = Str.T("連線中…", "connecting…");

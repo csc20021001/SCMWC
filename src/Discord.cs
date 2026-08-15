@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     /// <summary>
     /// 推播到 Discord webhook。電腦在跑東西時人可以出去吃飯，手機收通知。
@@ -98,7 +98,7 @@ namespace ScreenWatch
             var req = (HttpWebRequest)WebRequest.Create(url);
             req.Method = "POST";
             req.ServicePoint.Expect100Continue = false;
-            req.UserAgent = "ScreenWatch/0.1";
+            req.UserAgent = "SCMWC/0.1";
             req.Timeout = 15000;
             req.ReadWriteTimeout = 15000;
             return req;
@@ -117,7 +117,7 @@ namespace ScreenWatch
 
         static string PostMultipart(string url, string text, byte[] png)
         {
-            string boundary = "----ScreenWatch" + DateTime.UtcNow.Ticks.ToString("x");
+            string boundary = "----SCMWC" + DateTime.UtcNow.Ticks.ToString("x");
             var req = NewRequest(url);
             req.ContentType = "multipart/form-data; boundary=" + boundary;
 

@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ScreenWatch — 框住螢幕任何一塊，變了就通知你</title>
+<title>SCMWC — 框住螢幕任何一塊，變了就通知你</title>
 <meta name="description" content="Windows 工具：框住螢幕上任何一塊區域，畫面變化符合條件時通知你。支援進度條跑完、顏色改變等條件，可推播到手機。">
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="ScreenWatch — 框住螢幕任何一塊，變了就通知你">
+<meta property="og:title" content="SCMWC — 框住螢幕任何一塊，變了就通知你">
 <meta property="og:description" content="不管那塊畫面屬於哪個程式，它只看畫素，不需要跟任何程式整合。Windows 免費下載。">
 <meta property="og:image" content="screenshot.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ScreenWatch — 框住螢幕任何一塊，變了就通知你">
+<meta name="twitter:title" content="SCMWC — 框住螢幕任何一塊，變了就通知你">
 <meta name="twitter:description" content="不管那塊畫面屬於哪個程式，它只看畫素，不需要跟任何程式整合。Windows 免費下載。">
 <meta name="twitter:image" content="screenshot.png">
 
@@ -77,7 +77,7 @@
 
 <div class="wrap">
   <header>
-    <div class="brand" style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:12px"><span class="dot"></span><b>ScreenWatch</b></span><a href="/" style="font-size:13.5px;color:#8b8598;text-decoration:none;font-weight:400">English</a></div>
+    <div class="brand" style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:12px"><span class="dot"></span><b>SCMWC</b></span><a href="/" style="font-size:13.5px;color:#8b8598;text-decoration:none;font-weight:400">English</a></div>
     <h1>框住螢幕任何一塊，<br>變了就通知你。</h1>
     <p class="lede">
       不管那塊畫面屬於哪個程式 —— Citrix、SAP、公司 2005 年寫的內部系統、
@@ -89,15 +89,15 @@
     </p>
 
     <!-- 指向 GitHub Release 的 latest：出新版時網站不用改，也會有下載計數 -->
-    <a class="cta" href="https://github.com/csc20021001/ScreenWatch-Releases/releases/latest/download/ScreenWatch-Setup.exe">
+    <a class="cta" href="https://github.com/csc20021001/SCMWC-Releases/releases/latest/download/SCMWC-Setup.exe">
       免費下載
       <small>Windows 10 / 11 · 約 110 KB · 免安裝管理員權限</small>
     </a>
     <p class="meta">目前所有功能免費開放，沒有使用期限，也沒有廣告或追蹤。<br>
-      <a href="https://github.com/csc20021001/ScreenWatch-Releases/releases">查看所有版本</a></p>
+      <a href="https://github.com/csc20021001/SCMWC-Releases/releases">查看所有版本</a></p>
 
     <img class="shot" src="screenshot.png" width="1043" height="921"
-         alt="ScreenWatch 主視窗：監視清單顯示目標名稱、狀態、通知條件與進度，下方是通知紀錄">
+         alt="SCMWC 主視窗：監視清單顯示目標名稱、狀態、通知條件與進度，下方是通知紀錄">
   </header>
 
   <section>
@@ -148,7 +148,7 @@
     </p>
 
     <img class="shot" style="margin:0 0 26px" src="progress-styles.png"
-         width="775" height="1125"
+         width="969" height="1057"
          alt="五種常見的進度呈現方式：長條進度條、純文字百分比、轉圈圈、往下捲的訊息、完成時變色的狀態方塊">
 
     <table>
@@ -212,13 +212,13 @@
       <ol>
         <li>點左下角那行小小的 <b>其他資訊</b>（不是「不要執行」）</li>
         <li>畫面會多出一個 <b>仍要執行</b> 的按鈕，點它</li>
-        <li>接著就是 ScreenWatch 的安裝畫面，勾選同意條款後按「安裝」</li>
+        <li>接著就是 SCMWC 的安裝畫面，勾選同意條款後按「安裝」</li>
       </ol>
 
       <p class="step-h">如果沒有看到「其他資訊」</p>
       <p style="margin:0;color:var(--dim);font-size:14.5px">
         那代表檔案被標記為「從網際網路下載」而遭到封鎖。在下載好的
-        <code>ScreenWatch-Setup.exe</code> 上按<b>右鍵 → 內容</b>，
+        <code>SCMWC-Setup.exe</code> 上按<b>右鍵 → 內容</b>，
         在最下方勾選 <b>解除封鎖</b>，按「確定」之後再執行一次。
       </p>
 
@@ -235,9 +235,9 @@
         把安裝檔上傳到 <a href="https://www.virustotal.com/">VirusTotal</a>，
         用七十幾種防毒引擎掃描。也可以比對校驗碼，確認你下載到的跟我發佈的是同一個檔案 ——
         在 PowerShell 執行
-        <code>Get-FileHash .\ScreenWatch-Setup.exe -Algorithm SHA256</code>，
+        <code>Get-FileHash .\SCMWC-Setup.exe -Algorithm SHA256</code>，
         結果應該等於
-        <a href="https://github.com/csc20021001/ScreenWatch-Releases/releases/latest">Release 頁面</a>
+        <a href="https://github.com/csc20021001/SCMWC-Releases/releases/latest">Release 頁面</a>
         公布的那一串。
       </p>
     </div>
@@ -282,18 +282,20 @@
     <table>
       <tr><td>作業系統</td><td>Windows 10 1607 以上 / Windows 11</td></tr>
       <tr><td>相依套件</td><td>.NET Framework 4.x（Windows 內建，不需另外安裝）</td></tr>
-      <tr><td>安裝位置</td><td><code>%LOCALAPPDATA%\Programs\ScreenWatch</code>，不需要管理員權限</td></tr>
-      <tr><td>設定檔</td><td><code>%LOCALAPPDATA%\ScreenWatch\config.txt</code>，解除安裝時一併刪除</td></tr>
+      <tr><td>介面語言</td><td>Windows 顯示語言是中文就用中文，其餘一律英文。
+          隨時可以從系統匣選單切換。</td></tr>
+      <tr><td>安裝位置</td><td><code>%LOCALAPPDATA%\Programs\SCMWC</code>，不需要管理員權限</td></tr>
+      <tr><td>設定檔</td><td><code>%LOCALAPPDATA%\SCMWC\config.txt</code>，解除安裝時一併刪除</td></tr>
       <tr><td>資料蒐集</td><td>沒有。不含分析、不含廣告，除了你自己設定的 Discord 推播之外不對外連線。</td></tr>
     </table>
   </section>
 
   <footer>
-    <p>ScreenWatch 0.1.2 · 與 Microsoft、Discord 及任何被監視的軟體均無關聯。</p>
+    <p>SCMWC 0.1.3 · 與 Microsoft、Discord 及任何被監視的軟體均無關聯。</p>
     <p>
       <a href="terms-zh.txt">使用條款與免責聲明</a> ·
-      <a href="https://github.com/csc20021001/ScreenWatch-Releases">GitHub</a> ·
-      <a href="https://github.com/csc20021001/ScreenWatch-Releases/issues">回報問題</a>
+      <a href="https://github.com/csc20021001/SCMWC-Releases">GitHub</a> ·
+      <a href="https://github.com/csc20021001/SCMWC-Releases/issues">回報問題</a>
     </p>
   </footer>
 </div>

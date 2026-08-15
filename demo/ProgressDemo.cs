@@ -2,10 +2,10 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace ScreenWatchDemo
+namespace SCMWCDemo
 {
     /// <summary>
-    /// ScreenWatch 的測試目標：一個會跑進度條的視窗。
+    /// SCMWC 的測試目標：一個會跑進度條的視窗。
     ///
     /// 刻意做出三種不同性質的變化，方便測不同的偵測條件：
     ///   1. 進度條本身      —— 持續小幅變化
@@ -31,7 +31,7 @@ namespace ScreenWatchDemo
         {
             s = SystemScale();
 
-            Text = "Progress Demo — ScreenWatch 測試用";
+            Text = "Progress Demo";
             ClientSize = new Size(Px(520), Px(300));
             StartPosition = FormStartPosition.Manual;
             Location = new Point(Px(80), Px(80));
@@ -72,7 +72,7 @@ namespace ScreenWatchDemo
             row.Height = Px(44);
 
             var speedLabel = new Label();
-            speedLabel.Text = "速度";
+            speedLabel.Text = "Speed";
             speedLabel.Dock = DockStyle.Left;
             speedLabel.Width = Px(44);
             speedLabel.TextAlign = ContentAlignment.MiddleLeft;
@@ -80,18 +80,18 @@ namespace ScreenWatchDemo
             speed.Dock = DockStyle.Left;
             speed.Width = Px(120);
             speed.DropDownStyle = ComboBoxStyle.DropDownList;
-            speed.Items.AddRange(new object[] { "慢 (30 秒)", "中 (12 秒)", "快 (5 秒)" });
+            speed.Items.AddRange(new object[] { "Slow (30s)", "Medium (12s)", "Fast (5s)" });
             speed.SelectedIndexChanged += delegate { ApplySpeed(); };
 
             // 重現「滿了立刻歸零」：這種目標最容易讓監視工具錯過那個 100%
             noHold.Dock = DockStyle.Left;
             noHold.Width = Px(190);
-            noHold.Text = "跑完立刻歸零（不停留）";
+            noHold.Text = "Reset instantly at 100%";
             noHold.TextAlign = ContentAlignment.MiddleLeft;
 
             restart.Dock = DockStyle.Right;
             restart.Width = Px(110);
-            restart.Text = "重新開始";
+            restart.Text = "Restart";
             restart.Click += delegate { value = 0; holdTicks = 0; Render(); };
 
             row.Controls.Add(restart);

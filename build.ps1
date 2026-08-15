@@ -1,12 +1,12 @@
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $csc  = 'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe'
-$out  = Join-Path $root 'bin\ScreenWatch.exe'
+$out  = Join-Path $root 'bin\SCMWC.exe'
 
 New-Item -ItemType Directory -Force (Join-Path $root 'bin') | Out-Null
 
 # csc cannot overwrite a running exe, so stop our own processes first.
-$running = Get-Process ScreenWatch, ProgressDemo -ErrorAction SilentlyContinue
+$running = Get-Process SCMWC, ProgressDemo -ErrorAction SilentlyContinue
 if ($running) {
     $running | Stop-Process -Force
     Start-Sleep -Milliseconds 700
@@ -37,12 +37,12 @@ if ($LASTEXITCODE -ne 0) { "demo build FAILED ($LASTEXITCODE)"; exit 1 }
 "built  $demoOut"
 
 # Single-file installer with the two exes and the docs embedded as resources.
-$setupOut = Join-Path $root 'dist\ScreenWatch-Setup.exe'
+$setupOut = Join-Path $root 'dist\SCMWC-Setup.exe'
 New-Item -ItemType Directory -Force (Join-Path $root 'dist') | Out-Null
 & $csc /nologo /target:winexe /optimize+ /warn:3 /codepage:65001 `
     /out:$setupOut `
     /r:System.dll /r:System.Drawing.dll /r:System.Windows.Forms.dll `
-    "/resource:$out,ScreenWatch.exe" `
+    "/resource:$out,SCMWC.exe" `
     "/resource:$(Join-Path $root 'installer\EULA.txt'),EULA.txt" `
     "/resource:$(Join-Path $root 'installer\EULA-en.txt'),EULA-en.txt" `
     (Join-Path $root 'installer\Setup.cs')

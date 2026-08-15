@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     public enum TriggerKind
     {

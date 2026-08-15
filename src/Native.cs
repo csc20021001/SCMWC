@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct RECT

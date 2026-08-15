@@ -1,7 +1,7 @@
 using System;
 using System.Drawing;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     /// <summary>一次取樣的結果：畫面簽章 + 兩個健康指標。</summary>
     public sealed class Sample

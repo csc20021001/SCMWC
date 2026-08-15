@@ -27,9 +27,9 @@ if (-not $Files -or $Files.Count -eq 0) {
     # Order matters: the inner exes must be signed BEFORE the installer is built,
     # because the installer embeds them as resources. Run build.ps1 in between.
     $Files = @(
-        (Join-Path $root 'bin\ScreenWatch.exe'),
+        (Join-Path $root 'bin\SCMWC.exe'),
         (Join-Path $root 'bin\ProgressDemo.exe'),
-        (Join-Path $root 'dist\ScreenWatch-Setup.exe')
+        (Join-Path $root 'dist\SCMWC-Setup.exe')
     )
 }
 

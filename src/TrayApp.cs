@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Media;
 using System.Windows.Forms;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     public sealed class TrayApp : ApplicationContext
     {
@@ -48,7 +48,7 @@ namespace ScreenWatch
 
             tray = new NotifyIcon();
             tray.Icon = SystemIcons.Information;
-            tray.Text = "ScreenWatch";
+            tray.Text = "SCMWC";
             tray.Visible = true;
             tray.BalloonTipClicked += delegate { ShowMain(); };
             tray.DoubleClick += delegate { ShowMain(); };
@@ -74,7 +74,7 @@ namespace ScreenWatch
             Native.BeginHighResolutionTimer();
             sampler = new System.Threading.Thread(SamplerLoop);
             sampler.IsBackground = true;
-            sampler.Name = "ScreenWatch sampler";
+            sampler.Name = "SCMWC sampler";
             sampler.Start();
 
             moveProc = OnTargetMoved;
@@ -120,7 +120,7 @@ namespace ScreenWatch
                 MessageBox.Show(Str.T(
                     "找不到這塊區域底下的視窗。\r\n請對著某個程式的視窗框選，桌面本身沒辦法監視。",
                     "No window found under that selection.\r\nFrame part of an application window — the desktop itself cannot be watched."),
-                    "ScreenWatch");
+                    "SCMWC");
                 return;
             }
 
@@ -187,7 +187,7 @@ namespace ScreenWatch
                     "This window\u0027s contents cannot be read right now: " + why + "\r\n\r\n"
                     + "Some programs — full-screen games, DRM-protected video — refuse to let others read their pixels.\r\n"
                     + "The watch will still be created, but it will show \u0022No image\u0022 and will not notify you."),
-                    "ScreenWatch");
+                    "SCMWC");
             }
 
             w.Triggered += OnWatchTriggered;
@@ -347,7 +347,7 @@ namespace ScreenWatch
                 for (int i = 0; i < watches.Count; i++)
                     if (watches[i].Status == WatchStatus.Blind) blind++;
             }
-            tray.Text = string.Format(Str.T("ScreenWatch — 監視 {0} 項{1}", "ScreenWatch — watching {0}{1}"),
+            tray.Text = string.Format(Str.T("SCMWC — 監視 {0} 項{1}", "SCMWC — watching {0}{1}"),
                 copy.Count, blind > 0 ? string.Format(Str.T("，{0} 項看不到", ", {0} with no image"), blind) : "");
 
             if (main != null && !main.IsDisposed && main.Visible) main.RefreshList(copy);
@@ -391,16 +391,16 @@ namespace ScreenWatch
         {
             if (main != null && !main.IsDisposed)
                 main.AddHistory(Str.T(
-                    "通知檢查：已送出。如果右下角沒有跳出來，請到 Windows 設定裡允許 ScreenWatch 顯示通知",
-                    "Test alert sent. If nothing appeared in the corner, allow ScreenWatch to show notifications in Windows settings."));
+                    "通知檢查：已送出。如果右下角沒有跳出來，請到 Windows 設定裡允許 SCMWC 顯示通知",
+                    "Test alert sent. If nothing appeared in the corner, allow SCMWC to show notifications in Windows settings."));
             try { SystemSounds.Asterisk.Play(); }
             catch (Exception) { }
-            tray.ShowBalloonTip(6000, "ScreenWatch", Str.T(
+            tray.ShowBalloonTip(6000, "SCMWC", Str.T(
                 "通知正常。你看得到這則，就表示之後有變化時也收得到。",
                 "Notifications work. If you can see this, you will see the real ones too."), ToolTipIcon.Info);
             if (Discord.Configured)
-                Discord.Send(Str.T("ScreenWatch：通知正常，之後有變化會傳到這裡。",
-                    "ScreenWatch: alerts are working. Changes will show up here."), null);
+                Discord.Send(Str.T("SCMWC：通知正常，之後有變化會傳到這裡。",
+                    "SCMWC: alerts are working. Changes will show up here."), null);
         }
 
         /// <summary>目標視窗一動，浮動關閉鈕就立刻跟上，不用等下一次定時更新。</summary>
@@ -467,9 +467,9 @@ namespace ScreenWatch
         {
             Str.Set(!Str.IsChinese);
             MessageBox.Show(Str.T(
-                "語言已切換成中文。\r\n請重新啟動 ScreenWatch 讓整個介面更新。",
-                "Language switched to English.\r\nPlease restart ScreenWatch for the whole interface to update."),
-                "ScreenWatch");
+                "語言已切換成中文。\r\n請重新啟動 SCMWC 讓整個介面更新。",
+                "Language switched to English.\r\nPlease restart SCMWC for the whole interface to update."),
+                "SCMWC");
         }
 
         void EditLicense()
@@ -685,7 +685,7 @@ namespace ScreenWatch
                         t.Stop();
                         t.Dispose();
                         MessageBox.Show("等了 15 秒還是找不到標題含「" + title
-                            + "」的視窗。", "ScreenWatch");
+                            + "」的視窗。", "SCMWC");
                     }
                 };
                 t.Start();

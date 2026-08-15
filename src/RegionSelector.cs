@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     /// <summary>
     /// 覆蓋整個桌面的遮罩，兩種選法：

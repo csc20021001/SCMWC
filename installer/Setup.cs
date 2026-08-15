@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-namespace ScreenWatchSetup
+namespace SCMWCSetup
 {
     /// <summary>
     /// 安裝程式是獨立編譯的組件，拿不到主程式的 Str，所以自己帶一份。
@@ -32,17 +32,17 @@ namespace ScreenWatchSetup
     }
 
     /// <summary>
-    /// 單檔安裝程式。把 ScreenWatch.exe / ProgressDemo.exe / 說明文件
+    /// 單檔安裝程式。把 SCMWC.exe / ProgressDemo.exe / 說明文件
     /// 以資源方式內嵌，安裝時解出來，並建立捷徑與解除安裝項目。
     ///
     /// 不使用任何第三方打包工具：整包就是 Windows 內建的 csc.exe 編出來的一個 exe。
     /// </summary>
     public static class Setup
     {
-        public const string AppName = "ScreenWatch";
-        public const string Version = "0.1.2";
+        public const string AppName = "SCMWC";
+        public const string Version = "0.1.3";
         const string UninstallKey =
-            @"Software\Microsoft\Windows\CurrentVersion\Uninstall\ScreenWatch";
+            @"Software\Microsoft\Windows\CurrentVersion\Uninstall\SCMWC";
 
         public static string InstallDir
         {
@@ -89,9 +89,10 @@ namespace ScreenWatchSetup
         public static void Install(bool desktopShortcut)
         {
             StopRunning();
+            RemoveLegacyInstall();
             Directory.CreateDirectory(InstallDir);
 
-            Extract("ScreenWatch.exe", Path.Combine(InstallDir, "ScreenWatch.exe"));
+            Extract("SCMWC.exe", Path.Combine(InstallDir, "SCMWC.exe"));
             Extract("EULA.txt", Path.Combine(InstallDir, "terms-zh.txt"));
             Extract("EULA-en.txt", Path.Combine(InstallDir, "terms.txt"));
 
@@ -105,7 +106,7 @@ namespace ScreenWatchSetup
                     Version, DateTime.Now, Environment.UserName),
                 new System.Text.UTF8Encoding(true));
 
-            string exe = Path.Combine(InstallDir, "ScreenWatch.exe");
+            string exe = Path.Combine(InstallDir, "SCMWC.exe");
             string programs = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
             CreateShortcut(Path.Combine(programs, AppName + ".lnk"), exe,
                            Str.T("框住螢幕任何一塊，變了就通知你",
@@ -132,14 +133,55 @@ namespace ScreenWatchSetup
             }
         }
 
+        /// <summary>
+        /// 這個產品在 0.1.2 之前叫 ScreenWatch。直接裝新版會留下一份還能執行的舊程式、
+        /// 一個舊捷徑和「應用程式與功能」裡的舊項目，等於同一個工具跑兩份、通知兩次。
+        /// 所以升級時把舊的那份收乾淨。
+        ///
+        /// 只在舊資料夾裡確實有 ScreenWatch.exe 時才刪 —— 不對來路不明的資料夾動手。
+        /// 設定檔不刪，Config 會把它搬到新位置。
+        /// </summary>
+        static void RemoveLegacyInstall()
+        {
+            const string legacyName = "ScreenWatch";
+
+            foreach (Process p in Process.GetProcessesByName(legacyName))
+            {
+                try { p.Kill(); p.WaitForExit(3000); }
+                catch (Exception) { }
+            }
+
+            TryDelete(Path.Combine(Environment.GetFolderPath(
+                Environment.SpecialFolder.Programs), legacyName + ".lnk"));
+            TryDelete(Path.Combine(Environment.GetFolderPath(
+                Environment.SpecialFolder.DesktopDirectory), legacyName + ".lnk"));
+
+            try
+            {
+                Registry.CurrentUser.DeleteSubKeyTree(
+                    @"Software\Microsoft\Windows\CurrentVersion\Uninstall\" + legacyName, false);
+            }
+            catch (Exception) { }
+
+            try
+            {
+                string dir = Path.Combine(Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData),
+                    Path.Combine("Programs", legacyName));
+                if (File.Exists(Path.Combine(dir, legacyName + ".exe")))
+                    Directory.Delete(dir, true);
+            }
+            catch (Exception) { }
+        }
+
         static void Uninstall()
         {
             if (MessageBox.Show(Str.T(
-                "要移除 ScreenWatch 嗎？\r\n\r\n設定檔（%LOCALAPPDATA%\\ScreenWatch\\config.txt）會一併刪除，"
+                "要移除 SCMWC 嗎？\r\n\r\n設定檔（%LOCALAPPDATA%\\SCMWC\\config.txt）會一併刪除，"
                 + "裡面包含你填的 Discord webhook 網址。",
-                "Remove ScreenWatch?\r\n\r\nThe settings file (%LOCALAPPDATA%\\ScreenWatch\\config.txt) "
+                "Remove SCMWC?\r\n\r\nThe settings file (%LOCALAPPDATA%\\SCMWC\\config.txt) "
                 + "is deleted too — it contains the Discord webhook URL you entered."),
-                Str.T("移除 ScreenWatch", "Remove ScreenWatch"), MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+                Str.T("移除 SCMWC", "Remove SCMWC"), MessageBoxButtons.YesNo, MessageBoxIcon.Question)
                 != DialogResult.Yes) return;
 
             StopRunning();
@@ -161,7 +203,7 @@ namespace ScreenWatchSetup
             catch (Exception) { }
 
             // 自己刪不掉自己，交給一個延遲的批次檔
-            string bat = Path.Combine(Path.GetTempPath(), "screenwatch-cleanup.bat");
+            string bat = Path.Combine(Path.GetTempPath(), "scmwc-cleanup.bat");
             File.WriteAllText(bat,
                 "@echo off\r\n"
                 + "ping 127.0.0.1 -n 3 >nul\r\n"
@@ -177,7 +219,7 @@ namespace ScreenWatchSetup
 
         static void StopRunning()
         {
-            foreach (string n in new string[] { "ScreenWatch" })
+            foreach (string n in new string[] { "SCMWC" })
             {
                 foreach (Process p in Process.GetProcessesByName(n))
                 {
@@ -228,7 +270,7 @@ namespace ScreenWatchSetup
         public SetupForm()
         {
             s = Scale();
-            Text = Str.T("安裝 ScreenWatch ", "Install ScreenWatch ") + Setup.Version;
+            Text = Str.T("安裝 SCMWC ", "Install SCMWC ") + Setup.Version;
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
@@ -317,18 +359,18 @@ namespace ScreenWatchSetup
             }
             catch (Exception ex)
             {
-                MessageBox.Show(Str.T("安裝失敗：", "Installation failed: ") + ex.Message, "ScreenWatch",
+                MessageBox.Show(Str.T("安裝失敗：", "Installation failed: ") + ex.Message, "SCMWC",
                                 MessageBoxButtons.OK, MessageBoxIcon.Error);
                 install.Enabled = true;
                 return;
             }
 
-            if (MessageBox.Show(Str.T("安裝完成。\r\n\r\n要現在啟動 ScreenWatch 嗎？",
-                    "Installed.\r\n\r\nStart ScreenWatch now?"),
-                    "ScreenWatch", MessageBoxButtons.YesNo, MessageBoxIcon.Information)
+            if (MessageBox.Show(Str.T("安裝完成。\r\n\r\n要現在啟動 SCMWC 嗎？",
+                    "Installed.\r\n\r\nStart SCMWC now?"),
+                    "SCMWC", MessageBoxButtons.YesNo, MessageBoxIcon.Information)
                 == DialogResult.Yes)
             {
-                try { Process.Start(Path.Combine(Setup.InstallDir, "ScreenWatch.exe")); }
+                try { Process.Start(Path.Combine(Setup.InstallDir, "SCMWC.exe")); }
                 catch (Exception) { }
             }
             Close();

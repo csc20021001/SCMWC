@@ -1,4 +1,4 @@
-# ScreenWatch
+# SCMWC
 
 > If you have to keep watching it, let us watch it for you.
 
@@ -133,7 +133,7 @@ Citrix、SAP、2005 年寫的內部 ERP、Chrome、交易軟體都一樣，因�
 
 ## 測試目標：ProgressDemo.exe
 
-`bin\ProgressDemo.exe` 是拿來測 ScreenWatch 的假工作視窗，會跑進度條。
+`bin\ProgressDemo.exe` 是拿來測 SCMWC 的假工作視窗，會跑進度條。
 刻意做出三種不同性質的變化，方便測不同條件：
 
 | 元素 | 變化性質 | 用來測 |
@@ -149,7 +149,7 @@ Citrix、SAP、2005 年寫的內部 ERP、Chrome、交易軟體都一樣，因�
 
 ## 已驗證
 
-`ScreenWatch.exe --selftest "視窗標題片段"` 會不經過 UI，直接拿產品的
+`SCMWC.exe --selftest "視窗標題片段"` 會不經過 UI，直接拿產品的
 `Capturer` + `Watch` 去盯一個真實視窗 20 次，結果寫進 `bin\selftest.log`
 並存一張 `bin\selftest-shot.png`。
 
@@ -223,7 +223,7 @@ Win10/11 的鎖定畫面是 `LockApp.exe`，跑在 **Default 桌面**上，
 ## 架構
 
 ```
-ScreenWatch.exe（系統匣程式，單一檔案）
+SCMWC.exe（系統匣程式，單一檔案）
 │
 ├─ TrayApp          系統匣圖示、選單、UI 計時器、通知佇列的消費端
 │   ├─ 取樣執行緒     背景執行緒，唯一會呼叫 PrintWindow 的地方
@@ -239,7 +239,7 @@ ScreenWatch.exe（系統匣程式，單一檔案）
 │   └─ Trigger      四種通知條件、進度條定位與量測
 │
 ├─ Discord          webhook 推播（背景執行緒送出）
-└─ Config           %LOCALAPPDATA%\ScreenWatch\config.txt
+└─ Config           %LOCALAPPDATA%\SCMWC\config.txt
 ```
 
 資料流：**取樣執行緒** → `Watch.Tick()` → `Capturer.Grab()` 抓整個視窗 →
@@ -253,19 +253,19 @@ ScreenWatch.exe（系統匣程式，單一檔案）
 不需要安裝任何 SDK，用 Windows 內建的 .NET Framework 編譯器：
 
 ```powershell
-H:\ScreenWatch\build.ps1
+H:\SCMWC\build.ps1
 ```
 
 產出：
 
 | 檔案 | 說明 |
 | --- | --- |
-| `bin\ScreenWatch.exe` | 主程式，約 60 KB |
+| `bin\SCMWC.exe` | 主程式，約 60 KB |
 | `bin\ProgressDemo.exe` | 測試用進度條視窗 |
-| `dist\ScreenWatch-Setup.exe` | **安裝包**，約 114 KB，上面兩個和文件都內嵌在裡面 |
+| `dist\SCMWC-Setup.exe` | **安裝包**，約 114 KB，上面兩個和文件都內嵌在裡面 |
 
 安裝程式會先顯示完整的使用條款與免責聲明，**勾選同意之前「安裝」按鈕是停用的**。
-安裝到 `%LOCALAPPDATA%\Programs\ScreenWatch`（不需要系統管理員權限），
+安裝到 `%LOCALAPPDATA%\Programs\SCMWC`（不需要系統管理員權限），
 建立開始功能表與桌面捷徑，寫入「應用程式與功能」的解除安裝項目，
 並記錄同意條款的版本與時間到 `accepted-eula.txt`。
 
@@ -277,13 +277,13 @@ H:\ScreenWatch\build.ps1
 
 ```powershell
 # 1. 先簽兩個內層 exe
-.\sign.ps1 -Thumbprint <憑證指紋> -Files bin\ScreenWatch.exe, bin\ProgressDemo.exe
+.\sign.ps1 -Thumbprint <憑證指紋> -Files bin\SCMWC.exe, bin\ProgressDemo.exe
 
 # 2. 重新打包（安裝程式會把已簽章的 exe 內嵌進去）
 .\build.ps1
 
 # 3. 再簽安裝程式本身
-.\sign.ps1 -Thumbprint <憑證指紋> -Files dist\ScreenWatch-Setup.exe
+.\sign.ps1 -Thumbprint <憑證指紋> -Files dist\SCMWC-Setup.exe
 ```
 
 順序不能顛倒：安裝程式把兩個 exe 當資源內嵌，先簽安裝程式的話裡面裝的還是未簽章的版本。

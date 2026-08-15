@@ -3,17 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ScreenWatch — Frame any part of your screen. Get told when it changes.</title>
+<title>SCMWC — Frame any part of your screen. Get told when it changes.</title>
 <meta name="description" content="A tiny Windows tool that watches any region of your screen and notifies you when it changes. Works with any application, because it only looks at pixels.">
 
 <meta property="og:type" content="website">
-<meta property="og:title" content="ScreenWatch — Frame any part of your screen. Get told when it changes.">
+<meta property="og:title" content="SCMWC — Frame any part of your screen. Get told when it changes.">
 <meta property="og:description" content="Works with any application, because it only looks at pixels. Free for Windows.">
-<meta property="og:image" content="screenshot.png">
+<meta property="og:image" content="screenshot-en.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="ScreenWatch — Frame any part of your screen. Get told when it changes.">
+<meta name="twitter:title" content="SCMWC — Frame any part of your screen. Get told when it changes.">
 <meta name="twitter:description" content="Works with any application, because it only looks at pixels. Free for Windows.">
-<meta name="twitter:image" content="screenshot.png">
+<meta name="twitter:image" content="screenshot-en.png">
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2316151a'/%3E%3Crect x='9' y='9' width='14' height='14' rx='4' fill='%23e8734a'/%3E%3C/svg%3E">
 <style>
@@ -78,7 +78,7 @@
 
 <div class="wrap">
   <div class="top">
-    <div class="brand"><span class="dot"></span><b>ScreenWatch</b></div>
+    <div class="brand"><span class="dot"></span><b>SCMWC</b></div>
     <a class="lang" href="/zh">中文</a>
   </div>
 
@@ -86,22 +86,22 @@
     <h1>Frame any part of your screen.<br>Get told when it changes.</h1>
     <p class="lede">
       It doesn't matter which application owns that pixel — Citrix, SAP, an internal
-      tool written in 2005, a browser dashboard, a render queue. ScreenWatch only
+      tool written in 2005, a browser dashboard, a render queue. SCMWC only
       looks at pixels, so it never needs to integrate with anything.
     </p>
 
     <!-- Points at the GitHub "latest" release so the site never goes stale -->
-    <a class="cta" href="https://github.com/csc20021001/ScreenWatch-Releases/releases/latest/download/ScreenWatch-Setup.exe">
+    <a class="cta" href="https://github.com/csc20021001/SCMWC-Releases/releases/latest/download/SCMWC-Setup.exe">
       Download free
       <small>Windows 10 / 11 · ~110 KB · no admin rights needed</small>
     </a>
     <p class="meta">
       Everything is free right now. No time limit, no ads, no tracking.<br>
-      <a href="https://github.com/csc20021001/ScreenWatch-Releases/releases">All releases</a>
+      <a href="https://github.com/csc20021001/SCMWC-Releases/releases">All releases</a>
     </p>
 
-    <img class="shot" src="screenshot.png" width="1043" height="921"
-         alt="The ScreenWatch main window: a list of watched regions showing status, condition and progress, with a notification log below">
+    <img class="shot" src="screenshot-en.png" width="1043" height="921"
+         alt="The SCMWC main window: a list of watched regions showing status, condition and progress, with a notification log below">
   </header>
 
   <section>
@@ -115,7 +115,7 @@
       </div>
       <div class="card">
         <h3>It finds the progress bar for you</h3>
-        <p>Frame the whole window if you like — ScreenWatch locates the bar inside
+        <p>Frame the whole window if you like — SCMWC locates the bar inside
            your selection. It still works when the bar hits 100% and instantly
            resets for the next run.</p>
       </div>
@@ -132,7 +132,7 @@
       </div>
       <div class="card">
         <h3>Minimising doesn't blind it</h3>
-        <p>A minimised window draws nothing, so ScreenWatch parks it off-screen
+        <p>A minimised window draws nothing, so SCMWC parks it off-screen
            and keeps watching — rather than telling you not to minimise things.</p>
       </div>
       <div class="card">
@@ -153,8 +153,8 @@
       an hour of silence.
     </p>
 
-    <img class="shot" style="margin:0 0 26px" src="progress-styles.png"
-         width="775" height="1125"
+    <img class="shot" style="margin:0 0 26px" src="progress-styles-en.png"
+         width="969" height="1057"
          alt="Five common progress styles: a classic bar, a line of text with a percentage, a spinner, a scrolling log, and a status block that turns green when finished">
 
     <table>
@@ -193,7 +193,7 @@
     <p class="meta" style="margin-top:20px">
       Every row above was measured against a test page, including the negative case —
       text percentages really do produce zero triggers with the wrong condition.
-      If you pick a bar-based condition and no bar can be found, ScreenWatch tells
+      If you pick a bar-based condition and no bar can be found, SCMWC tells
       you out loud instead of quietly never notifying you.
     </p>
   </section>
@@ -222,13 +222,13 @@
       <ol>
         <li>Click the small <b>More info</b> link (not "Don't run")</li>
         <li>A <b>Run anyway</b> button appears — click it</li>
-        <li>The ScreenWatch installer opens; accept the terms and install</li>
+        <li>The SCMWC installer opens; accept the terms and install</li>
       </ol>
 
       <p class="step-h">If there's no "More info" link</p>
       <p style="margin:0;color:var(--dim);font-size:14.5px">
         The file was marked as downloaded from the internet and blocked outright.
-        Right-click <code>ScreenWatch-Setup.exe</code> → <b>Properties</b>, tick
+        Right-click <code>SCMWC-Setup.exe</code> → <b>Properties</b>, tick
         <b>Unblock</b> at the bottom, click OK, and run it again.
       </p>
 
@@ -245,9 +245,9 @@
         Upload the installer to <a href="https://www.virustotal.com/">VirusTotal</a>
         and let seventy-odd engines look at it. You can also confirm you got the
         exact file that was published — run
-        <code>Get-FileHash .\ScreenWatch-Setup.exe -Algorithm SHA256</code>
+        <code>Get-FileHash .\SCMWC-Setup.exe -Algorithm SHA256</code>
         and compare it with the hash on the
-        <a href="https://github.com/csc20021001/ScreenWatch-Releases/releases/latest">release page</a>.
+        <a href="https://github.com/csc20021001/SCMWC-Releases/releases/latest">release page</a>.
       </p>
     </div>
   </section>
@@ -257,14 +257,14 @@
     <table>
       <tr>
         <td>It moves your windows</td>
-        <td>When a watched window is minimised, ScreenWatch restores it and parks it
+        <td>When a watched window is minimised, SCMWC restores it and parks it
             outside the visible desktop so it keeps drawing and can still be captured.
             Put it back any time from the tray menu; quitting the app restores it too.</td>
       </tr>
       <tr>
         <td>"Finished" is an inference</td>
         <td>Windows progress bars animate as they fill, so a program that resets the
-            instant it completes may never actually render a full bar. ScreenWatch then
+            instant it completes may never actually render a full bar. SCMWC then
             infers completion from progress falling sharply — which can mistake a failed
             retry for a finished job.</td>
       </tr>
@@ -283,13 +283,8 @@
       <tr>
         <td>Some screens can't be captured</td>
         <td>Full-screen games and DRM-protected video windows refuse to let other programs
-            read their pixels. ScreenWatch shows "no image" and explains why rather than
+            read their pixels. SCMWC shows "no image" and explains why rather than
             pretending to watch.</td>
-      </tr>
-      <tr>
-        <td>The app is in Chinese right now</td>
-        <td>The interface has not been translated yet. An English build is the next thing
-            on the list — until then you may want to wait.</td>
       </tr>
     </table>
     <p class="meta">Full terms are in the
@@ -301,21 +296,23 @@
     <table>
       <tr><td>OS</td><td>Windows 10 1607 or later / Windows 11</td></tr>
       <tr><td>Runtime</td><td>.NET Framework 4.x — already part of Windows</td></tr>
-      <tr><td>Installs to</td><td><code>%LOCALAPPDATA%\Programs\ScreenWatch</code>, no admin rights</td></tr>
-      <tr><td>Settings file</td><td><code>%LOCALAPPDATA%\ScreenWatch\config.txt</code>, removed on uninstall</td></tr>
+      <tr><td>Language</td><td>English, switching to Traditional Chinese only if that is your
+          Windows display language. Change it any time from the tray menu.</td></tr>
+      <tr><td>Installs to</td><td><code>%LOCALAPPDATA%\Programs\SCMWC</code>, no admin rights</td></tr>
+      <tr><td>Settings file</td><td><code>%LOCALAPPDATA%\SCMWC\config.txt</code>, removed on uninstall</td></tr>
       <tr><td>Data collection</td><td>None. No analytics, no ads, and no outbound connections
           except the Discord webhook you configure yourself.</td></tr>
     </table>
   </section>
 
   <footer>
-    <p>ScreenWatch 0.1.2 · Not affiliated with or endorsed by Microsoft, Discord,
+    <p>SCMWC 0.1.3 · Not affiliated with or endorsed by Microsoft, Discord,
        or any application you point it at.</p>
     <p>
       <a href="terms.txt">Licence &amp; disclaimer</a> ·
       <a href="/zh">中文</a> ·
-      <a href="https://github.com/csc20021001/ScreenWatch-Releases">GitHub</a> ·
-      <a href="https://github.com/csc20021001/ScreenWatch-Releases/issues">Report a problem</a>
+      <a href="https://github.com/csc20021001/SCMWC-Releases">GitHub</a> ·
+      <a href="https://github.com/csc20021001/SCMWC-Releases/issues">Report a problem</a>
     </p>
   </footer>
 </div>

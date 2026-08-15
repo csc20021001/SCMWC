@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<title>Progress Styles — ScreenWatch 範例產生器</title>
+<title>Progress Styles</title>
 <style>
   :root{ --bg:#f5f5f7; --card:#fff; --line:#dcdce2; --ink:#1b1b1f; --dim:#63636e; }
   *{box-sizing:border-box}
@@ -45,13 +45,13 @@
 <div class="row">
 
   <div class="card">
-    <span class="tag">A · 典型長條進度條</span>
+    <span class="tag" data-zh="A · 典型長條進度條" data-en="A · A classic progress bar">A · 典型長條進度條</span>
     <div class="bar"><i id="barfill"></i></div>
     <div style="margin-top:8px;color:var(--dim);font-size:13px">Exporting frames…</div>
   </div>
 
   <div class="card">
-    <span class="tag">B · 純文字百分比</span>
+    <span class="tag" data-zh="B · 純文字百分比" data-en="B · Text with a percentage">B · 純文字百分比</span>
     <div class="statusline">
       <span class="pulse" id="pulse"></span>
       <span id="textmsg">Uploading dataset to the server</span>
@@ -60,7 +60,7 @@
   </div>
 
   <div class="card">
-    <span class="tag">C · 只有轉圈圈，沒有數字</span>
+    <span class="tag" data-zh="C · 只有轉圈圈，沒有數字" data-en="C · A spinner, no numbers">C · 只有轉圈圈，沒有數字</span>
     <div style="display:flex;align-items:center;gap:14px">
       <div class="spin"></div>
       <span style="color:var(--dim)">Processing, please wait…</span>
@@ -68,27 +68,38 @@
   </div>
 
   <div class="card">
-    <span class="tag">D · 一直往下捲的訊息</span>
+    <span class="tag" data-zh="D · 一直往下捲的訊息" data-en="D · A scrolling log">D · 一直往下捲的訊息</span>
     <div class="log" id="log"></div>
   </div>
 
   <div class="card">
-    <span class="tag">E · 完成時整塊變色</span>
+    <span class="tag" data-zh="E · 完成時整塊變色" data-en="E · A block that changes colour">E · 完成時整塊變色</span>
     <div class="badge" id="badge">RUNNING</div>
   </div>
 
 </div>
 
 <script>
+  // 網址加上 ?lang=en 就切成英文標籤，用來產生英文版的對照圖。
+  if (location.search.indexOf('lang=en') >= 0) {
+    var tags = document.querySelectorAll('.tag');
+    for (var i = 0; i < tags.length; i++) tags[i].textContent = tags[i].dataset.en;
+  }
+
   // 一輪 = 12 秒推進到 100%，停 4 秒，再重來。
   // 五種樣式共用同一個進度值，方便對照「同一件事的不同呈現方式」。
   var n = 0, holding = 0;
+  // 網址加上 ?at=68 就停在該百分比不動，用來拍出兩種語言完全同一個狀態的對照圖。
+  var frozen = /[?&]at=(\d+)/.exec(location.search);
   var lines = ['loading manifest', 'resolving deps', 'fetch chunk', 'decode',
                'write shard', 'verify hash', 'flush buffers', 'commit'];
   var log = document.getElementById('log');
 
   setInterval(function () {
-    if (n >= 100) {
+    if (frozen) {
+      if (n >= +frozen[1]) return;   // 到了就凍住，畫面不再變動
+      n++;
+    } else if (n >= 100) {
       holding++;
       if (holding > 40) { n = 0; holding = 0; }
     } else { n++; }

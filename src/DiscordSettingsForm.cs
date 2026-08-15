@@ -2,7 +2,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     /// <summary>Discord webhook 設定。</summary>
     public sealed class DiscordSettingsForm : Form
@@ -103,8 +103,8 @@ namespace ScreenWatch
                 return;
             }
             Discord.LastResult = Str.T("傳送中…", "sending…");
-            Discord.Send(Str.T("ScreenWatch：設定成功，之後有變化會傳到這裡。",
-                "ScreenWatch: set up correctly. Changes will show up here."), null);
+            Discord.Send(Str.T("SCMWC：設定成功，之後有變化會傳到這裡。",
+                "SCMWC: set up correctly. Changes will show up here."), null);
             result.Text = Str.T("傳送中…", "sending…");
 
             var t = new Timer();

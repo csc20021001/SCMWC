@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 
-namespace ScreenWatch
+namespace SCMWC
 {
     /// <summary>
     /// 主視窗（深色主控台）。整個畫面自繪 —— WinForms 沒有色票標籤、圓角、
@@ -57,7 +57,7 @@ namespace ScreenWatch
             fLog = new Font("Segoe UI", 10f * (float)s);
             fLogTime = new Font("Consolas", 9f * (float)s);
 
-            Text = "ScreenWatch";
+            Text = "SCMWC";
             ClientSize = new Size(Px(820), Px(700));
             MinimumSize = new Size(Px(640), Px(540));
             StartPosition = FormStartPosition.CenterScreen;
@@ -138,7 +138,9 @@ namespace ScreenWatch
 
             testLink.Text = Str.T("試發一則通知", "Send a test alert");
             testLink.Font = new Font("Segoe UI", 9.5f * (float)s, FontStyle.Bold);
-            testLink.SetBounds(Px(22), Px(15), Px(110), Px(20));
+            // 兩個連結的寬度讓文字自己決定：中英文長度差很多，寫死會被切掉。
+            testLink.SizeToText();
+            testLink.Location = new Point(Px(22), Px(15));
             testLink.Click += delegate
             {
                 var h = TestNotifyRequested;
@@ -148,7 +150,8 @@ namespace ScreenWatch
 
             phoneLink.Text = Str.T("設定手機通知…", "Phone alerts…");
             phoneLink.Font = new Font("Segoe UI", 9.5f * (float)s, FontStyle.Bold);
-            phoneLink.SetBounds(Px(146), Px(15), Px(130), Px(20));
+            phoneLink.SizeToText();
+            phoneLink.Location = new Point(testLink.Right + Px(20), Px(15));
             phoneLink.Click += delegate
             {
                 var h = DiscordSettingsRequested;
@@ -190,12 +193,11 @@ namespace ScreenWatch
             Theme.FillRounded(g, new Rectangle(Px(22), y + Px(3), Px(11), Px(11)), Px(3), Theme.Accent);
 
             int x = Px(41);
-            TextRenderer.DrawText(g, "ScreenWatch", fTitle, new Point(x, y - Px(2)),
+            TextRenderer.DrawText(g, "SCMWC", fTitle, new Point(x, y - Px(2)),
                                   Theme.Text, TextFormatFlags.NoPadding);
-            x += TextRenderer.MeasureText(g, "ScreenWatch", fTitle).Width + Px(10);
+            x += TextRenderer.MeasureText(g, "SCMWC", fTitle).Width + Px(10);
 
-            string count = watchCount == 1 ? "1 watching"
-                : string.Format("{0} watching", watchCount);
+            string count = string.Format(Str.T("監視中 {0} 項", "{0} watching"), watchCount);
             TextRenderer.DrawText(g, count, fMeta, new Point(x, y + Px(2)),
                                   Theme.TextFaint, TextFormatFlags.NoPadding);
 
@@ -232,7 +234,7 @@ namespace ScreenWatch
                 g.DrawLine(p, 0, 0, footer.ClientSize.Width, 0);
 
             string right = Discord.LastResult.Length > 0
-                ? Str.T("上次傳送 ", "Last send: ") + Discord.LastResult : "";
+                ? Str.T("上次傳送 ", "Last alert — ") + Discord.LastResult : "";
             if (right.Length == 0) return;
             Size sz = TextRenderer.MeasureText(g, right, fMeta);
             TextRenderer.DrawText(g, right, fMeta,
@@ -564,6 +566,12 @@ namespace ScreenWatch
                      | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
             Cursor = Cursors.Hand;
             BackColor = Theme.FooterBg;
+        }
+
+        /// <summary>把控件縮成剛好包住目前文字的大小，量法跟 OnPaint 畫的方式一致。</summary>
+        public void SizeToText()
+        {
+            Size = TextRenderer.MeasureText(Text, Font, Size.Empty, TextFormatFlags.NoPadding);
         }
 
         protected override void OnMouseEnter(EventArgs e) { hot = true; Invalidate(); base.OnMouseEnter(e); }
