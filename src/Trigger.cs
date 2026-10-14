@@ -32,6 +32,12 @@ namespace SCMWC
             get { return Kind != TriggerKind.AnyChange; }
         }
 
+        // Completion is estimated from sampled pixels, not a task-status API.
+        const double CompletionPercent = 96;
+        const double RearmMarginPercent = 3;
+        const double RestartDropPercent = 25;
+        const int MaxLocateAttempts = 60;
+
         bool armed = true;
 
         // 進度條的兩個端點顏色。無法一開始就知道，要在觀察中學。
@@ -40,7 +46,7 @@ namespace SCMWC
         public bool Calibrated { get { return fillColor != Color.Empty; } }
 
         Color baseColor = Color.Empty;           // ColorChanged 的基準色
-        double prevPercent = -1;
+        double previousPercent = -1;
 
         // 使用者框的範圍裡，真正是進度條的那一條橫帶（用比例存，視窗縮放也還準）。
         double bandTop = -1, bandHeight = 0;
@@ -51,7 +57,7 @@ namespace SCMWC
         public double LastPercent = -1;          // -1 = 還算不出來
 
         /// <summary>找不到進度條。UI 要據此明確告訴使用者，不能只顯示「學習中」。</summary>
-        public bool BarNotFound { get { return bandTop < 0 && locateAttempts >= 60; } }
+        public bool BarNotFound { get { return bandTop < 0 && locateAttempts >= MaxLocateAttempts; } }
 
         public string Describe()
         {
@@ -67,13 +73,13 @@ namespace SCMWC
             }
         }
 
-        /// <summary>
-        /// 從左往右量進度條填到哪裡。
-        ///
-        /// 假設：水平、由左至右填滿。使用者框的區域應該就是那條進度條。
-        /// 先學會「填滿色」與「未填色」兩個端點顏色，再數從左邊起連續有幾欄接近填滿色。
-        /// 兩端顏色還沒學到（整條同色）時回傳 -1，代表「還不知道」而不是 0%。
-        /// </summary>
+        // 進度條左右兩端幾乎一定有邊框或圓角，最外側幾欄不能拿來當參考色。
+        const int BorderColumnsToSkip = 3;
+        const int LocationColumnCount = 60;       // 找進度條位置用
+        const int MeasurementColumnCount = 150;   // 量百分比用，解析度要細一點
+
+        public string BandInfo = "not located yet";
+
         /// <summary>
         /// 在使用者框的範圍裡找出真正是進度條的那一條橫帶。
         ///
@@ -82,33 +88,26 @@ namespace SCMWC
         ///
         /// 進度條的特徵：某條橫帶被切成左右兩塊、各自內部顏色一致、兩塊顏色差很多。
         /// </summary>
-        // 進度條左右兩端幾乎一定有邊框或圓角，最外側幾欄不能拿來當參考色。
-        const int Trim = 3;
-        const int Cols = 60;            // 找進度條位置用
-        const int MeasureCols = 150;    // 量百分比用，解析度要細一點
-
-        public string BandInfo = "not located yet";
-
         bool TryLocateBar(Capturer cap, Rectangle region)
         {
             // 掃描位置要夠密，厚的進度條才會橫跨好幾條帶，
             // 「上下呼應度」這個判斷才有鑑別力。
-            const int Bands = 96;
-            int bandPx = Math.Max(3, region.Height / Bands);
+            const int LocationBandCount = 96;
+            int bandPx = Math.Max(3, region.Height / LocationBandCount);
 
-            var ok = new bool[Bands];
-            var splitAt = new int[Bands];       // 分界線在第幾欄
-            var contrast = new double[Bands];
-            var cleanliness = new double[Bands];
+            var ok = new bool[LocationBandCount];
+            var splitAt = new int[LocationBandCount];       // 分界線在第幾欄
+            var contrast = new double[LocationBandCount];
+            var cleanliness = new double[LocationBandCount];
 
-            for (int b = 0; b < Bands; b++)
+            for (int b = 0; b < LocationBandCount; b++)
             {
-                int y = region.Y + b * region.Height / Bands;
+                int y = region.Y + b * region.Height / LocationBandCount;
                 Color[] cols = cap.ColumnColors(
-                    new Rectangle(region.X, y, region.Width, bandPx), Cols);
-                if (cols.Length < Trim * 2 + 6) continue;
+                    new Rectangle(region.X, y, region.Width, bandPx), LocationColumnCount);
+                if (cols.Length < BorderColumnsToSkip * 2 + 6) continue;
 
-                int lo = Trim, hi = cols.Length - 1 - Trim;
+                int lo = BorderColumnsToSkip, hi = cols.Length - 1 - BorderColumnsToSkip;
                 Color a = cols[lo];
                 Color z = cols[hi];
                 double split = Capturer.ColorDistance(a, z);
@@ -136,14 +135,14 @@ namespace SCMWC
             double bestScore = -1;
             int bestBand = -1;
             int bestSupport = 0;
-            for (int b = 0; b < Bands; b++)
+            for (int b = 0; b < LocationBandCount; b++)
             {
                 if (!ok[b]) continue;
                 int support = 0;
                 for (int d = -4; d <= 4; d++)
                 {
                     int n = b + d;
-                    if (d == 0 || n < 0 || n >= Bands || !ok[n]) continue;
+                    if (d == 0 || n < 0 || n >= LocationBandCount || !ok[n]) continue;
                     if (Math.Abs(splitAt[n] - splitAt[b]) <= 4) support++;
                 }
                 // 呼應度太低的一律不接受。進度條是有厚度的，上下一定有同位置的分界線；
@@ -156,7 +155,7 @@ namespace SCMWC
             locateAttempts++;
             if (bestBand < 0) return false;     // 這次找不到，下次再找，不要將就
 
-            bandTop = (double)(bestBand * region.Height / Bands) / region.Height;
+            bandTop = (double)(bestBand * region.Height / LocationBandCount) / region.Height;
             bandHeight = (double)bandPx / region.Height;
             BandInfo = string.Format("region 內 y={0:0.0}%~{1:0.0}%（上下呼應度 {2}）",
                 bandTop * 100, (bandTop + bandHeight) * 100, bestSupport);
@@ -171,15 +170,22 @@ namespace SCMWC
                                  Math.Max(2, (int)(region.Height * bandHeight)));
         }
 
+        /// <summary>
+        /// 從左往右量進度條填到哪裡。
+        ///
+        /// 假設：水平、由左至右填滿；先在框選區域內定位進度條，再量測橫帶。
+        /// 先學會「填滿色」與「未填色」兩個端點顏色，再數從左邊起連續有幾欄接近填滿色。
+        /// 兩端顏色還沒學到（整條同色）時回傳 -1，代表「還不知道」而不是 0%。
+        /// </summary>
         public double MeasurePercent(Capturer cap, Rectangle region)
         {
             if (bandTop < 0 && !TryLocateBar(cap, region)) return -1;
 
-            Color[] cols = cap.ColumnColors(BarRegion(region), MeasureCols);
-            if (cols.Length < Trim * 2 + 4) return -1;
+            Color[] cols = cap.ColumnColors(BarRegion(region), MeasurementColumnCount);
+            if (cols.Length < BorderColumnsToSkip * 2 + 4) return -1;
 
             // 一樣要跳過最外側的邊框欄，否則量到的最大值永遠到不了 100%
-            int lo = Trim, hi = cols.Length - 1 - Trim;
+            int lo = BorderColumnsToSkip, hi = cols.Length - 1 - BorderColumnsToSkip;
             Color left = cols[lo];
             Color right = cols[hi];
             if (Capturer.ColorDistance(left, right) > 30)
@@ -307,35 +313,38 @@ namespace SCMWC
 
             // 「跑完了」不要求剛好 100%：真實的進度條常有邊框或圓角，
             // 量到滿的時候往往只有 96~98%，卡在 99 就永遠不會通知。
-            double target = Kind == TriggerKind.Full ? 96 : PercentTarget;
-            double pct = MeasurePercent(cap, region);
-            LastPercent = pct;
-            if (pct < 0) return null;           // 還沒校準，不能亂通知
+            double targetPercent = Kind == TriggerKind.Full ? CompletionPercent : PercentTarget;
+            double currentPercent = MeasurePercent(cap, region);
+            LastPercent = currentPercent;
+            if (currentPercent < 0) return null;           // 還沒校準，不能亂通知
 
-            double prev = prevPercent;
-            prevPercent = pct;
+            double previousSamplePercent = previousPercent;
+            previousPercent = currentPercent;
 
-            if (pct >= target)
+            if (currentPercent >= targetPercent)
             {
                 if (!armed) return null;
                 armed = false;
                 return Kind == TriggerKind.Full
-                    ? string.Format(Str.T("跑完了（{0:0}%）", "finished ({0:0}%)"), pct)
-                    : string.Format(Str.T("到達 {0}%（目前 {1:0}%）", "reached {0}% (now {1:0}%)"), PercentTarget, pct);
+                    ? string.Format(Str.T("跑完了（{0:0}%）", "finished ({0:0}%)"), currentPercent)
+                    : string.Format(Str.T("到達 {0}%（目前 {1:0}%）", "reached {0}% (now {1:0}%)"), PercentTarget, currentPercent);
             }
 
             // 兩次檢查之間就跑完又歸零的情況。
-            // 進度大幅倒退就是證據 —— 這是使用者實際遇到的問題：
-            // 進度條滿了之後立刻從 0 重跑，取樣間隔太長就完全看不到那個 100%。
-            if (armed && prev >= 0 && prev > target * 0.5 && pct < prev - 25)
+            // 進度大幅倒退時推測已完成並重跑：取樣間隔可能錯過 100%。
+            // 這是像素變化的啟發式推測，不是目標程式回傳的完成狀態。
+            bool restartedBetweenSamples = previousSamplePercent >= 0
+                && previousSamplePercent > targetPercent * 0.5
+                && currentPercent < previousSamplePercent - RestartDropPercent;
+            if (armed && restartedBetweenSamples)
             {
                 armed = false;
                 return string.Format(
-                    Str.T("跑完了（在兩次檢查之間完成，進度已從 {0:0}% 歸零重跑）", "finished between two checks — progress dropped from {0:0}% and restarted"), prev);
+                    Str.T("跑完了（在兩次檢查之間完成，進度已從 {0:0}% 歸零重跑）", "finished between two checks — progress dropped from {0:0}% and restarted"), previousSamplePercent);
             }
 
             // 掉回目標以下才重新武裝，避免停在 100% 一直吵
-            if (pct < target - 3) armed = true;
+            if (currentPercent < targetPercent - RearmMarginPercent) armed = true;
             return null;
         }
     }

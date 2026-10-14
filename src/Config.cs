@@ -7,7 +7,7 @@ namespace SCMWC
 {
     /// <summary>
     /// 極簡設定檔：%LOCALAPPDATA%\SCMWC\config.txt，一行一個 key=value。
-    /// 目前只存 Discord 設定；之後要存監視項目也放這裡。
+    /// 保存 Discord、語言與授權設定；監視項目目前只存在記憶體。
     /// </summary>
     public static class Config
     {

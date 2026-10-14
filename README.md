@@ -1,5 +1,7 @@
 # SCMWC
 
+程式模組與通知流程見 [架構說明](docs/ARCHITECTURE.md)。先執行 `build.ps1`，再執行 `test.ps1`，可驗證五種通知條件的合成影像回歸案例。
+
 > If you have to keep watching it, let us watch it for you.
 
 框住螢幕上任何一塊區域，它變了就通知你。不管那塊區域屬於哪個程式 ——
@@ -29,7 +31,7 @@ Citrix、SAP、2005 年寫的內部 ERP、Chrome、交易軟體都一樣，因�
 | 使用者看到的選項 | 判斷方式 | 觸發方式 |
 | --- | --- | --- |
 | 畫面只要有變化就通知我 | 64x64 灰階網格的平均絕對差超過門檻 | 每次超過都通知（有冷卻時間） |
-| 跑完了才通知我 | 進度條填到 ≥99% | **邊緣觸發**，跑完才響一次 |
+| 跑完了才通知我 | 取樣估計進度 ≥96%（容許邊框誤差） | **邊緣觸發**，跑完才響一次 |
 | 跑到指定進度就通知我 | 進度條填到 ≥ 指定 % | **邊緣觸發** |
 | 顏色變了就通知我 | 區域平均色與基準色的 RGB 距離超過容許值 | **邊緣觸發**，雙向都算 |
 
@@ -305,7 +307,7 @@ Get-ChildItem Cert:\CurrentUser\My | Format-List Subject, Thumbprint, NotAfter
 - 沒有進階條件：特定顏色出現、OCR 文字包含 "Completed"、文字停止顯示
   "Processing"。本機 OCR 用 `Windows.Media.Ocr` 就有，不需要 LLM，
   但那需要 .NET 8 SDK（現在這台機器沒有）
-- 沒有手機推送
+- 手機通知已支援 Discord webhook；尚未提供其他推送服務
 - 沒有開機自動啟動
 - **沒有程式碼簽章** —— 沒簽章的截圖工具會被 SmartScreen 擋，
   企業環境的 EDR 也會告警。這是上架前必須解決的事
